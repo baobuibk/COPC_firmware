@@ -1,0 +1,5 @@
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:881:22:LL_GPIO_SetOutputPin	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:910:22:LL_GPIO_ResetOutputPin	16	static
+../Core/WATCHDOG/watchdog.c:37:6:WDT_init	4	static
+../Core/WATCHDOG/watchdog.c:43:6:WDT_create_task	8	static
+../Core/WATCHDOG/watchdog.c:49:6:status_wdt_update	8	static

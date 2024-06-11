@@ -1,0 +1,10 @@
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:881:22:LL_GPIO_SetOutputPin	1
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:910:22:LL_GPIO_ResetOutputPin	1
+../Core/LED/status_led.c:58:6:status_led_set_status	1
+../Core/LED/status_led.c:63:6:status_led_init	1
+../Core/LED/status_led.c:73:13:status_led_off	1
+../Core/LED/status_led.c:79:13:status_led_on	1
+../Core/LED/status_led.c:85:6:status_led_update	4
+../Core/LED/status_led.c:101:13:status_led_powerup	5
+../Core/LED/status_led.c:161:13:status_led_normal	1
+../Core/LED/status_led.c:183:6:status_led_create_task	1

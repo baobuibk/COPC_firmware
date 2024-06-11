@@ -1,0 +1,6 @@
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:881:22:LL_GPIO_SetOutputPin	1
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:910:22:LL_GPIO_ResetOutputPin	1
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:20:5:Cmd_pmu_get_temp	3
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:50:5:Cmd_pmu_bat_vol	3
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:80:5:Cmd_pmu_parag_in	3
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:110:5:Cmd_pmu_parag_out	3

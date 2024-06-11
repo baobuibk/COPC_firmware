@@ -1,0 +1,3 @@
+../Core/CPOC/CPOC.c:56:6:COPC_init	1
+../Core/CPOC/CPOC.c:68:13:COPC_task_update	7
+../Core/CPOC/CPOC.c:113:6:COPC_create_task	1

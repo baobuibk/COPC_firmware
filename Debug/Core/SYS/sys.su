@@ -1,0 +1,3 @@
+../Core/SYS/sys.c:32:24:SYS_GetSystemState	4	static
+../Core/SYS/sys.c:43:6:SYS_PostEvent	16	static
+../Core/SYS/sys.c:60:13:SYS_handle_events	24	static
