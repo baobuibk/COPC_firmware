@@ -54,11 +54,13 @@ TSOD (ESC D7) => SOD (7E) TEOF (ESC DE) => EOF (EF) TESC (ESC DB) => ESC (BD)
 #define FSP_PKT_TYPE_CMD_W_DATA_ACK		8
 
 // Commands
-#define FSP_CMD_HEART_BEAT						1       /**< request ACK for heart beat. */
-#define FSP_CMD_PDU_SINGLE_POWER_CONTROL		2       /**< Send data command. */
-#define FSP_CMD_PDU_SINGLE_POWER_STATUS_REQUEST	3       /**< Request RF mutex command. */
-#define FSP_CMD_HIBERNATION						4       /**< Hibernation command. */
-#define FSP_CMD_RESET_CHARGE					5       /**< Reset battery charge command. */
+//#define FSP_CMD_HEART_BEAT						1       /**< request ACK for heart beat. */
+//#define FSP_CMD_PDU_SINGLE_POWER_CONTROL		2       /**< Send data command. */
+//#define FSP_CMD_PDU_SINGLE_POWER_STATUS_REQUEST	3       /**< Request RF mutex command. */
+//#define FSP_CMD_HIBERNATION						4       /**< Hibernation command. */
+//#define FSP_CMD_RESET_CHARGE					5       /**< Reset battery charge command. */
+#define CMD_CODE_RESPONSE_ACTION		0x00
+#define CMD_CODE_RESPONSE_FAILED        0xFF
 
 // Ack answers
 #define FSP_ACK_RF_MUTEX_FREE           1       /**< RF mutex is free. */

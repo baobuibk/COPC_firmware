@@ -12,7 +12,7 @@
 #include "../../BSP/UART/uart.h"
 
 /* Private define ------------------------------------------------------------*/
-#define	ACK_TIMEOUT			1000
+#define	ACK_TIMEOUT			500
 #define MAX_RETRIES 		3
 
 uint8_t g_encoded_pkt[FSP_PKT_MAX_LENGTH];
@@ -35,7 +35,7 @@ static ACKsend_TaskContextTypedef           ACKsend_task_context =
 	{
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
-		100,                                // taskPeriodInMS;
+		10,                                // taskPeriodInMS;
 		status_ACKsend_update					// taskFunction;
 	}
 };
@@ -94,7 +94,7 @@ void	status_ACKsend_update(void)
 
 			    }
 
-				SCH_TIM_Start(SCH_TIM_ACK,ACK_TIMEOUT);	//restart
+				SCH_TIM_Start(SCH_TIM_ACK, ACK_TIMEOUT);	//restart
 			}
 		   else {
 

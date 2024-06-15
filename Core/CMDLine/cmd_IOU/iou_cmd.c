@@ -211,16 +211,17 @@ int Cmd_iou_set_temp(int argc, char *argv[])
     if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
 
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
 
     uint16_t temp = atoi(argv[2]);
+    if (temp > 500)    return CMDLINE_INVALID_ARG;
 
     // Create the command payload
     uint8_t cmd  = CMD_CODE_SET_TEMP;
     uint8_t payload[3];
-    payload[0]  = (uint8_t)(temp & 0xFF); //low
+    payload[0]  = channel;
     payload[1]  = (uint8_t)(temp >> 8);   //high
-    payload[2]  =  channel;
+    payload[2]  = (uint8_t)(temp & 0xFF); //low
     fsp_packet_t  fsp_pkt;
     fsp_gen_cmd_w_data_pkt(cmd, payload, sizeof(payload), DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
 
@@ -257,15 +258,16 @@ int Cmd_iou_get_temp(int argc, char *argv[])
     if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
 
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
     uint8_t sensor = atoi(argv[2]);
     if (sensor > 1)    return CMDLINE_INVALID_ARG;
 
     uint8_t cmd  = CMD_CODE_GET_TEMP;
     uint8_t payload[2];
 
-    payload[0] = sensor;
-    payload[1] = channel;
+    payload[0] = channel;
+    payload[1] = sensor;
+
 
     fsp_packet_t fsp_pkt;
     fsp_gen_cmd_w_data_pkt(cmd, payload, sizeof(payload), DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
@@ -295,7 +297,7 @@ int Cmd_iou_temp_setpoint(int argc, char *argv[])
     if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
     if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
 
     uint8_t cmd  = CMD_CODE_TEMP_SETPOINT;
     uint8_t payload[1];
@@ -329,7 +331,7 @@ int Cmd_iou_tec_ena(int argc, char *argv[])
     if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
     if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
 
     uint8_t cmd  = CMD_CODE_TEC_ENA;
     uint8_t payload[1];
@@ -363,7 +365,7 @@ int Cmd_iou_tec_dis(int argc, char *argv[])
     if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
     if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
 
     uint8_t cmd  = CMD_CODE_TEC_DIS;
     uint8_t payload[1];
@@ -397,7 +399,7 @@ int Cmd_iou_tec_ena_auto(int argc, char *argv[])
     if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
     if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
 
     uint8_t cmd  = CMD_CODE_TEC_ENA_AUTO;
     uint8_t payload[1];
@@ -431,7 +433,7 @@ int Cmd_iou_tec_dis_auto(int argc, char *argv[])
     if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
     if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
 
     uint8_t cmd  = CMD_CODE_TEC_DIS_AUTO;
     uint8_t payload[1];
@@ -466,21 +468,21 @@ int Cmd_iou_tec_set_output(int argc, char *argv[])
     if (argc < 4) return CMDLINE_TOO_FEW_ARGS;
     if (argc > 4) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
 
     uint8_t mode = atoi(argv[2]);
     if (mode > 1)    return CMDLINE_INVALID_ARG;
 
     uint16_t vol = atoi(argv[3]);
-
+    if (vol > 500)    return CMDLINE_INVALID_ARG;
 
 
     uint8_t cmd  = CMD_CODE_TEC_SET_OUTPUT;
     uint8_t payload[4];
-    payload[0]  = (uint8_t)(vol & 0xFF); //low
-    payload[1]  = (uint8_t)(vol >> 8);   //high
-    payload[2] = mode;
-    payload[3] = channel;
+    payload[0] = channel;
+    payload[1] = mode;
+    payload[2]  = (uint8_t)(vol >> 8);   //high
+    payload[3]  = (uint8_t)(vol & 0xFF); //low
 
     fsp_packet_t fsp_pkt;
     fsp_gen_cmd_w_data_pkt(cmd, payload, sizeof(payload), DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
@@ -510,15 +512,16 @@ int Cmd_iou_tec_auto_vol(int argc, char *argv[])
     if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
     if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
-    if (channel > 4)    return CMDLINE_INVALID_ARG;
+    if (channel > 3)    return CMDLINE_INVALID_ARG;
 
     uint16_t vol = atoi(argv[2]);
+    if (vol > 500)    return CMDLINE_INVALID_ARG;
 
     uint8_t cmd  = CMD_CODE_TEC_AUTO_VOL;
     uint8_t payload[3];
-    payload[0]  = (uint8_t)(vol & 0xFF); //low
+    payload[0] = channel;
     payload[1]  = (uint8_t)(vol >> 8);   //high
-    payload[2] = channel;
+    payload[2]  = (uint8_t)(vol & 0xFF); //low
 
     fsp_packet_t fsp_pkt;
     fsp_gen_cmd_w_data_pkt(cmd, payload, sizeof(payload), DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
@@ -633,20 +636,51 @@ int Cmd_iou_tec_log_dis(int argc, char *argv[])
     return CMDLINE_PENDING;
 }
 
-int Cmd_iou_ringled_mode(int argc, char *argv[])
+int Cmd_iou_ringled_setRGB(int argc, char *argv[])
 {
     if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
     if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t mode = atoi(argv[1]);
-    if (mode > 2)    return CMDLINE_INVALID_ARG;
+    if (mode > 3)    return CMDLINE_INVALID_ARG;
 
-    uint8_t cmd  = CMD_CODE_RINGLED_MODE;
+    uint8_t cmd  = CMD_CODE_RINGLED_SETRGB;
     uint8_t payload[1];
 
     payload[0]  = mode; //low
 
     fsp_packet_t fsp_pkt;
     fsp_gen_cmd_w_data_pkt(cmd, payload, sizeof(payload), DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
+
+    uint8_t encoded_frame[FSP_PKT_MAX_LENGTH];
+    uint8_t frame_len;
+
+    frame_encode(&fsp_pkt, encoded_frame, &frame_len);
+    // BA
+    /*
+:  --> 00   -> PDU
+:  --> 01   -> PMU
+:  --> 10   -> CAM
+:  --> 11   -> IOU (*)
+     */
+    LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
+    LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
+    SCH_Delay(5);
+    set_fsp_packet(encoded_frame, frame_len);
+    set_send_flag();
+
+    return CMDLINE_PENDING;
+}
+
+int Cmd_iou_ringled_getRGB(int argc, char *argv[])
+{
+    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
+    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+
+
+    uint8_t cmd  = CMD_CODE_RINGLED_GETRGB;
+
+    fsp_packet_t fsp_pkt;
+    fsp_gen_cmd_pkt(cmd, DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
 
     uint8_t encoded_frame[FSP_PKT_MAX_LENGTH];
     uint8_t frame_len;
@@ -732,6 +766,100 @@ int Cmd_iou_irled_get_bright(int argc, char *argv[])
 
     return CMDLINE_PENDING;
 }
+
+
+
+int Cmd_iou_get_accel(int argc, char *argv[])
+{
+    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
+    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+
+    uint8_t cmd  = CMD_CODE_GET_ACCEL_GYRO;
+    fsp_packet_t fsp_pkt;
+
+    fsp_gen_cmd_pkt(cmd, DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
+
+    uint8_t encoded_frame[FSP_PKT_MAX_LENGTH];
+    uint8_t frame_len;
+
+    frame_encode(&fsp_pkt, encoded_frame, &frame_len);
+    // BA
+    /*
+:  --> 00   -> PDU
+:  --> 01   -> PMU
+:  --> 10   -> CAM
+:  --> 11   -> IOU (*)
+     */
+    LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
+    LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
+    SCH_Delay(5);
+    set_fsp_packet(encoded_frame, frame_len);
+    set_send_flag();
+
+    return CMDLINE_PENDING;
+}
+
+int Cmd_iou_get_press(int argc, char *argv[])
+{
+    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
+    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+
+    uint8_t cmd  = CMD_CODE_GET_PRESS;
+    fsp_packet_t fsp_pkt;
+
+    fsp_gen_cmd_pkt(cmd, DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
+
+    uint8_t encoded_frame[FSP_PKT_MAX_LENGTH];
+    uint8_t frame_len;
+
+    frame_encode(&fsp_pkt, encoded_frame, &frame_len);
+    // BA
+    /*
+:  --> 00   -> PDU
+:  --> 01   -> PMU
+:  --> 10   -> CAM
+:  --> 11   -> IOU (*)
+     */
+    LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
+    LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
+    SCH_Delay(5);
+    set_fsp_packet(encoded_frame, frame_len);
+    set_send_flag();
+
+    return CMDLINE_PENDING;
+}
+
+
+int Cmd_iou_get_parameters(int argc, char *argv[])
+{
+    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
+    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+
+    uint8_t cmd  = CMD_CODE_GET_PARAMETERS;
+    fsp_packet_t fsp_pkt;
+
+    fsp_gen_cmd_pkt(cmd, DEST_ADDR, FSP_PKT_WITH_ACK, &fsp_pkt);
+
+    uint8_t encoded_frame[FSP_PKT_MAX_LENGTH];
+    uint8_t frame_len;
+
+    frame_encode(&fsp_pkt, encoded_frame, &frame_len);
+    // BA
+    /*
+:  --> 00   -> PDU
+:  --> 01   -> PMU
+:  --> 10   -> CAM
+:  --> 11   -> IOU (*)
+     */
+    LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
+    LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
+    SCH_Delay(5);
+    set_fsp_packet(encoded_frame, frame_len);
+    set_send_flag();
+
+    return CMDLINE_PENDING;
+}
+
 
 
 volatile uint8_t ack_received = 0;

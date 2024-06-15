@@ -30,9 +30,11 @@ int Cmd_help_pdu(int argc, char *argv[]);
 int Cmd_help_cam(int argc, char *argv[]);
 int Cmd_help_iou(int argc, char *argv[]);
 int Cmd_status_now(int argc, char *argv[]);
+int Cmd_memory_usage(int argc, char *argv[]);
 int Cmd_time_get(int argc, char *argv[]);
 int Cmd_time_set(int argc, char *argv[]);
 int Cmd_cpoc_reset(int argc, char *argv[]);
+//int Cmd_board_alive(int argc, char *argv[]);
 int Cmd_rf_ena(int argc, char *argv[]);
 int Cmd_rf_dis(int argc, char *argv[]);
 

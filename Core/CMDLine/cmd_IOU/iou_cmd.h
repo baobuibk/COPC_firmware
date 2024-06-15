@@ -61,10 +61,13 @@ B A
 #define CMD_CODE_TEC_STATUS							0x0A
 #define CMD_CODE_TEC_LOG_ENA						0x0B
 #define CMD_CODE_TEC_LOG_DIS						0x0C
-#define CMD_CODE_RINGLED_MODE						0x0D
-#define CMD_CODE_IRLED_SET_BRIGHT					0x0E
-#define CMD_CODE_IRLED_GET_BRIGHT					0x0F
-
+#define CMD_CODE_RINGLED_SETRGB	    				0x0D
+#define CMD_CODE_RINGLED_GETRGB 					0x0E
+#define CMD_CODE_IRLED_SET_BRIGHT					0x0F
+#define CMD_CODE_IRLED_GET_BRIGHT					0x10
+#define CMD_CODE_GET_ACCEL_GYRO						0x11
+#define CMD_CODE_GET_PRESS						 	0x12
+#define CMD_CODE_GET_PARAMETERS		   				0x13
 
 int Cmd_iou_set_temp(int argc, char *argv[]);
 int Cmd_iou_get_temp(int argc, char *argv[]);
@@ -78,10 +81,13 @@ int Cmd_iou_tec_auto_vol(int argc, char *argv[]);
 int Cmd_iou_tec_status(int argc, char *argv[]);
 int Cmd_iou_tec_log_ena(int argc, char *argv[]);
 int Cmd_iou_tec_log_dis(int argc, char *argv[]);
-int Cmd_iou_ringled_mode(int argc, char *argv[]);
+int Cmd_iou_ringled_setRGB(int argc, char *argv[]);
+int Cmd_iou_ringled_getRGB(int argc, char *argv[]);
 int Cmd_iou_irled_set_bright(int argc, char *argv[]);
 int Cmd_iou_irled_get_bright(int argc, char *argv[]);
-
+int Cmd_iou_get_accel(int argc, char *argv[]);
+int Cmd_iou_get_press(int argc, char *argv[]);
+int Cmd_iou_get_parameters(int argc, char *argv[]);
 
 
 
