@@ -11,6 +11,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "../CMDLine/ACK_packet/ACKsend_packet.h"
+#include "stdlib.h"
 
 uint8_t fsp_my_adr;
 
@@ -344,9 +345,86 @@ int frame_decode(uint8_t *buffer, uint8_t length, fsp_packet_t *pkt){
 
     *pkt = fsp_pkt;
 
+
     frame_processing(&fsp_pkt);
+
+
     return 0;
 }
+
+
+
+int frame_decode_rs422(uint8_t *buffer, uint8_t length, fsp_packet_t *pkt){
+
+    fsp_packet_t fsp_pkt;
+    uint8_t i = 0;
+    uint8_t j = 0;
+    uint8_t escape = 0;
+    uint8_t decoded_payload[FSP_PAYLOAD_MAX_LENGTH];
+
+//
+//	if (length < FSP_PKT_MIN_LENGTH - 2) {
+//	        return FSP_PKT_INVALID;
+//	}
+
+
+	while (i < length){
+        uint8_t byte = buffer[i++];
+        if (escape) {
+            if (byte == FSP_PKT_TSOD) {
+                decoded_payload[j++] = FSP_PKT_SOD;
+            } else if (byte == FSP_PKT_TEOF) {
+                decoded_payload[j++] = FSP_PKT_EOF;
+            } else if (byte == FSP_PKT_TESC) {
+                decoded_payload[j++] = FSP_PKT_ESC;
+            } else {
+            	return FSP_PKT_INVALID;
+            }
+            escape = 0;
+        } else if (byte == FSP_PKT_ESC) {
+        	escape = 1;
+        } else {
+            decoded_payload[j++] = byte;
+        }
+	}
+
+    i = 0;
+    fsp_pkt.src_adr = decoded_payload[i++];
+    fsp_pkt.dst_adr = decoded_payload[i++];
+    fsp_pkt.length = decoded_payload[i++];
+    fsp_pkt.type = decoded_payload[i++];
+
+//    if (fsp_pkt.length > FSP_PAYLOAD_MAX_LENGTH || fsp_pkt.length != j - FSP_PKT_HEADER_LENGTH  - FSP_PKT_CRC_LENGTH) {
+//        return FSP_PKT_WRONG_LENGTH;
+//    }
+
+    memcpy(fsp_pkt.payload, &decoded_payload[i], fsp_pkt.length);
+    i += fsp_pkt.length;
+    //CRC
+//    uint16_t crc_received = (uint16_t)(decoded_payload[i++] << 8);
+//    crc_received |= (uint16_t)(decoded_payload[i++]);
+//
+
+    // CAL CRC
+ //   uint16_t crc_calculated = crc16_CCITT(FSP_CRC16_INITIAL_VALUE, &fsp_pkt.src_adr, fsp_pkt.length + 4);
+
+
+//    // CHECK CRC
+//    if (crc_received != crc_calculated) {
+//        return FSP_PKT_CRC_FAIL;
+//    }
+//
+//    // Address
+//    if (fsp_pkt.dst_adr != fsp_my_adr) {
+//        return FSP_PKT_WRONG_ADR;
+//    }
+
+    *pkt = fsp_pkt;
+
+
+    return 0;
+}
+
 
 char pos_str2[10];
 
@@ -359,7 +437,7 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 			{
 				case FSP_PKT_TYPE_ACK:
 					clear_send_flag();
-					Uart_sendstring(USART6, "\nPMU_ACK\r\n> ");
+					Uart_sendstring(UART5, "\nPMU_ACK\r\n> ");
 
 				case FSP_PKT_TYPE_CMD_W_DATA:
 					//reverse
@@ -367,76 +445,123 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 					switch(fsp_pkt->payload[0])
 					{
 						case 0x00:
+						{
 							char buffer_0x00[50];
 							sprintf(buffer_0x00, "PMU_Done: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							Uart_sendstring(USART6, buffer_0x00);
+							Uart_sendstring(UART5, buffer_0x00);
+						}
 							break;
 						case 0xFF:
+						{
 							char buffer_0xFF[50];
 							sprintf(buffer_0xFF, "PMU_Failed: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							Uart_sendstring(USART6, buffer_0xFF);
+							Uart_sendstring(UART5, buffer_0xFF);
+						}
 							break;
 
 						case 0x01:
-					        int16_t ntc0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
-					        int16_t ntc1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
-					        int16_t ntc2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
-					        int16_t ntc3 = (int16_t)((fsp_pkt->payload[7] << 8) | fsp_pkt->payload[8]);
+						{
+						    int16_t ntc0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
+						    int16_t ntc1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
+						    int16_t ntc2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
+						    int16_t ntc3 = (int16_t)((fsp_pkt->payload[7] << 8) | fsp_pkt->payload[8]);
 
-					        char buffer_0x01[100];
-					        sprintf(buffer_0x01, "PMU_Res: CMDcode 0x01 [NTC0: %d, NTC1: %d, NTC2: %d, NTC3: %d]\n", ntc0, ntc1, ntc2, ntc3);
-					        Uart_sendstring(USART6, buffer_0x01);
-
-							break;
+						    char buffer_0x01[100];
+						    sprintf(buffer_0x01, "PMU_Res: CMDcode 0x01 [\nNTC0: %s%d.%02d, \nNTC1: %s%d.%02d, \nNTC2: %s%d.%02d, \nNTC3: %s%d.%02d]\n",
+						            ntc0 < 0 ? "-" : "", abs(ntc0) / 100, abs(ntc0) % 100,
+						            ntc1 < 0 ? "-" : "", abs(ntc1) / 100, abs(ntc1) % 100,
+						            ntc2 < 0 ? "-" : "", abs(ntc2) / 100, abs(ntc2) % 100,
+						            ntc3 < 0 ? "-" : "", abs(ntc3) / 100, abs(ntc3) % 100);
+						    Uart_sendstring(UART5, buffer_0x01);
+						}
+						break;
 
 						case 0x02:
+						{
 					        uint16_t bat0 = (uint16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
 					        uint16_t bat1 = (uint16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
 					        uint16_t bat2 = (uint16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
 					        uint16_t bat3 = (uint16_t)((fsp_pkt->payload[7] << 8) | fsp_pkt->payload[8]);
 
 					        char buffer_0x02[100];
-					        sprintf(buffer_0x02, "PDU_Res: CMDcode 0x02 [BAT0: %u mV, BAT1: %u mV, BAT2: %u mV, BAT3: %u mV]\n", bat0, bat1, bat2, bat3);
-					        Uart_sendstring(USART6, buffer_0x02);
-
+					        sprintf(buffer_0x02, "PMU_Res: CMDcode 0x02 [BAT0: %d.%02d V, BAT1: %d.%02d V, BAT2: %d.%02d V, BAT3: %d.%02d V]\n",
+					                bat0/100, bat0%100, bat1/100, bat1%100, bat2/100, bat2%100, bat3/100, bat3%100);
+					        Uart_sendstring(UART5, buffer_0x02);
+						}
 							break;
 						case 0x03:
-					        uint16_t vin = (uint16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
-					        uint16_t iin = (uint16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
+						{
+						    uint16_t vin = (uint16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
+						    uint16_t iin = (uint16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
 
-					        char buffer_0x03[100];
-					        sprintf(buffer_0x03, "PDU_Res: CMDcode 0x03 [VIN: %u mV, IIN: %u mA]\n", vin, iin);
-					        Uart_sendstring(USART6, buffer_0x03);
+						    char buffer_0x03[100];
+						    sprintf(buffer_0x03, "PMU_Res: CMDcode 0x03 [VIN: %d.%02d V, IIN: %d.%02d A]\n",
+						            vin/100, vin%100, iin/100, iin%100);
+						    Uart_sendstring(UART5, buffer_0x03);
+						}
+						    break;
 
-							break;
+
 						case 0x04:
-					        uint16_t vout = (uint16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
-					        uint16_t iout = (uint16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
+						{
+						    uint16_t vout = (uint16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
+						    uint16_t iout = (uint16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
 
-					        char buffer_0x04_pmu[100];
-					        sprintf(buffer_0x04_pmu, "PDU_Res: CMDcode 0x04 [VOUT: %u mV, IOUT: %u mA]\n", vout, iout);
-					        Uart_sendstring(USART6, buffer_0x04_pmu);
+						    char buffer_0x04_pmu[100];
+						    sprintf(buffer_0x04_pmu, "PMU_Res: CMDcode 0x04 [VOUT: %d.%02d V, IOUT: %d.%02d A]\n",
+						            vout/100, vout%100, iout/100, iout%100);
+						    Uart_sendstring(UART5, buffer_0x04_pmu);
+						}
 
 							break;
-						case 0x08:
 
+							case 0x08:
+							    {
+							    	int16_t ntc0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
+							    	int16_t ntc1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
+							    	int16_t ntc2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
+							    	int16_t ntc3 = (int16_t)((fsp_pkt->payload[7] << 8) | fsp_pkt->payload[8]);
 
-							break;
+							    	uint16_t bat0 = (uint16_t)((fsp_pkt->payload[9] << 8) | fsp_pkt->payload[10]);
+							    	uint16_t bat1 = (uint16_t)((fsp_pkt->payload[11] << 8) | fsp_pkt->payload[12]);
+							    	uint16_t bat2 = (uint16_t)((fsp_pkt->payload[13] << 8) | fsp_pkt->payload[14]);
+							    	uint16_t bat3 = (uint16_t)((fsp_pkt->payload[15] << 8) | fsp_pkt->payload[16]);
+
+							    	uint16_t vin = (uint16_t)((fsp_pkt->payload[17] << 8) | fsp_pkt->payload[18]);
+							    	uint16_t iin = (uint16_t)((fsp_pkt->payload[19] << 8) | fsp_pkt->payload[20]);
+
+							    	uint16_t vout = (uint16_t)((fsp_pkt->payload[21] << 8) | fsp_pkt->payload[22]);
+							    	uint16_t iout = (uint16_t)((fsp_pkt->payload[23] << 8) | fsp_pkt->payload[24]);
+
+							    	char buffer_0x08[500];
+							    	sprintf(buffer_0x08, "PMU_Res: CMDcode 0x08 [\nNTC0: %s%d.%02d, \nNTC1: %s%d.%02d, \nNTC2: %s%d.%02d, \nNTC3: %s%d.%02d, \nBAT0: %d.%02d V, \nBAT1: %d.%02d V, \nBAT2: %d.%02d V, \nBAT3: %d.%02d V, \nVIN: %d.%02d V, \nIIN: %d.%02d A, \nVOUT: %d.%02d V, \nIOUT: %d.%02d A]\n",
+							    	        ntc0 < 0 ? "-" : "", abs(ntc0) / 100, abs(ntc0) % 100,
+							    	        ntc1 < 0 ? "-" : "", abs(ntc1) / 100, abs(ntc1) % 100,
+							    	        ntc2 < 0 ? "-" : "", abs(ntc2) / 100, abs(ntc2) % 100,
+							    	        ntc3 < 0 ? "-" : "", abs(ntc3) / 100, abs(ntc3) % 100,
+							    	        bat0 / 100, bat0 % 100, bat1 / 100, bat1 % 100,
+							    	        bat2 / 100, bat2 % 100, bat3 / 100, bat3 % 100,
+							    	        vin / 100, vin % 100, iin / 100, iin % 100,
+							    	        vout / 100, vout % 100, iout / 100, iout % 100);
+							    	Uart_sendstring(UART5, buffer_0x08);
+							    }
+							    break;
 					}
 
 					break;
 				default:
+					clear_send_flag();
 					return FSP_PKT_INVALID;
 					break;
 			}
-
+			clear_send_flag();
 			break;
 		case FSP_ADR_PDU:
 			switch (fsp_pkt->type)
 			{
 				case FSP_PKT_TYPE_ACK:
 					clear_send_flag();
-					Uart_sendstring(USART6, "\n> PDU_ACK\r\n> ");
+					Uart_sendstring(UART5, "\n> PDU_ACK\r\n> ");
 					break;
 				case FSP_PKT_TYPE_CMD_W_DATA:
 					//reverse
@@ -444,18 +569,22 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 					switch(fsp_pkt->payload[0])
 					{
 						case 0x00:
+						{
 							char buffer_0x00[50];
 							sprintf(buffer_0x00, "PDU_Done: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							Uart_sendstring(USART6, buffer_0x00);
+							Uart_sendstring(UART5, buffer_0x00);
+						}
 							break;
 						case 0xFF:
+						{
 							char buffer_0xFF[50];
 							sprintf(buffer_0xFF, "PDU_Failed: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							Uart_sendstring(USART6, buffer_0xFF);
+							Uart_sendstring(UART5, buffer_0xFF);
+						}
 							break;
 
 						case 0x04:
-
+						{
 							        uint8_t channel = fsp_pkt->payload[1];
 							        uint8_t status_0x04 = fsp_pkt->payload[2];
 							        uint16_t voltage_0x04 = (fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4];
@@ -463,9 +592,11 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 
 							        char buffer_0x07[100];
 							        sprintf(buffer_0x07, "PDU_Res: CMDcode 0x04 [{Channel %u} Status %u, Voltage: %u, Current: %u]\n", channel, status_0x04, voltage_0x04, current_0x04);
-							        Uart_sendstring(USART6, buffer_0x07);
+							        Uart_sendstring(UART5, buffer_0x07);
+						}
 									break;
 						case 0x05:
+						{
 						            uint8_t buck = fsp_pkt->payload[1];
 						            uint8_t status_0x05 = fsp_pkt->payload[2];
 						            uint16_t voltage_0x05 = (fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4];
@@ -473,10 +604,11 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 
 						            char buffer_0x05[100];
 						            sprintf(buffer_0x05, "PDU_Res: CMDcode 0x05 [{Buck %u} Status %u, Voltage: %u, Current: %u]\n", buck, status_0x05, voltage_0x05, current_0x05);
-						            Uart_sendstring(USART6, buffer_0x05);
-
+						            Uart_sendstring(UART5, buffer_0x05);
+						}
 									break;
 						case 0x06:
+						{
 							uint8_t tec1buck_status = fsp_pkt->payload[1];
 							uint16_t tec1buck_voltage = (fsp_pkt->payload[2] << 8) | fsp_pkt->payload[3];
 
@@ -533,7 +665,7 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 
 
 						            char buffer_0x06[1000];
-						            sprintf(buffer_0x06, "TEC1BUCK: Status %u, Voltage: %u\r\nTEC2BUCK: Status %u, Voltage: %u\r\nTEC3BUCK: Status %u, Voltage: %u\r\nTEC4BUCK: Status %u, Voltage: %u\r\nMCUBUCK: Status %u, Voltage: %u\r\nLEDBUCK: Status %u, Voltage: %u\r\nCM4BUCK: Status %u, Voltage: %u\r\nTEC1: Status %u, Current: %u\r\nTEC2: Status %u, Current: %u\r\nTEC3: Status %u, Current: %u\r\nTEC4: Status %u, Current: %u\r\nCOPC: Status %u, Current: %u\r\nIOU: Status %u, Current: %u\r\nRGB: Status %u, Current: %u\r\nIR: Status %u, Current: %u\r\nCM4: Status %u, Current: %u\r\nVIN: Status %u, Voltage: %u\r\nVBUS: Status %u, Voltage: %u\r\n",
+						            sprintf(buffer_0x06, "PDU_Res: CMDcode 0x06 [TEC1BUCK: Status %u, Voltage: %u\r\nTEC2BUCK: Status %u, Voltage: %u\r\nTEC3BUCK: Status %u, Voltage: %u\r\nTEC4BUCK: Status %u, Voltage: %u\r\nMCUBUCK: Status %u, Voltage: %u\r\nLEDBUCK: Status %u, Voltage: %u\r\nCM4BUCK: Status %u, Voltage: %u\r\nTEC1: Status %u, Current: %u\r\nTEC2: Status %u, Current: %u\r\nTEC3: Status %u, Current: %u\r\nTEC4: Status %u, Current: %u\r\nCOPC: Status %u, Current: %u\r\nIOU: Status %u, Current: %u\r\nRGB: Status %u, Current: %u\r\nIR: Status %u, Current: %u\r\nCM4: Status %u, Current: %u\r\nVIN: Status %u, Voltage: %u\r\nVBUS: Status %u, Voltage: %u\r\n]",
 						                tec1buck_status, tec1buck_voltage,
 						                tec2buck_status, tec2buck_voltage,
 						                tec3buck_status, tec3buck_voltage,
@@ -553,12 +685,11 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						                vin_status, vin_voltage,
 						                vbus_status, vbus_voltage);
 
-						            Uart_sendstring(USART6, buffer_0x06);
-
-
-
+						            Uart_sendstring(UART5, buffer_0x06);
+						}
 
 						default:
+							clear_send_flag();
 							return FSP_PKT_INVALID;
 							break;
 
@@ -568,10 +699,10 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 //					if (fsp_pkt->payload[0] == 0) {
 //						char buffer[50];
 //						sprintf(buffer, "PDU_Done: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-//						Uart_sendstring(USART6, buffer);
+//						Uart_sendstring(UART5, buffer);
 //					} else {
 //					    for (int i = 0; i < fsp_pkt->length; i++) {
-//					        Uart_write(USART6, fsp_pkt->payload[i]);
+//					        Uart_write(UART5, fsp_pkt->payload[i]);
 //					    }
 //					}
 
@@ -579,18 +710,20 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 //										    		char buffer[10];
 //													for (int i = 0; i < fsp_pkt->length; i++) {
 //													      sprintf(buffer, "\n{%d}", fsp_pkt->payload[i]);
-//													      Uart_sendstring(USART6, buffer);
+//													      Uart_sendstring(UART5, buffer);
 //													}
 
-
+					clear_send_flag();
 					break;
 				default:
+					clear_send_flag();
 					return FSP_PKT_INVALID;
 					break;
 			}
 
 			break;
 		case FSP_ADR_CAM:
+			clear_send_flag();
 
 			break;
 
@@ -599,29 +732,177 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 			{
 				case FSP_PKT_TYPE_ACK:
 					clear_send_flag();
-					Uart_sendstring(USART6, "\nIOU_ACK\r\n> ");
+					Uart_sendstring(UART5, "\nIOU_ACK\r\n> ");
 					break;
 				case FSP_PKT_TYPE_CMD_W_DATA:
 
-					if (fsp_pkt->payload[0] == 0) {
-					    printf("IOU_Done: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-					} else {
-					    for (int i = 0; i < fsp_pkt->length; i++) {
-					      //  Uart_write(USART6, fsp_pkt->payload[i]);
-					    			char lmao[20];
-					 			    sprintf(lmao, "\n{%d}", fsp_pkt->payload[i]);
-					     		    Uart_sendstring(USART6, lmao);
-					    }
-					}
+					clear_send_flag();
+					switch(fsp_pkt->payload[0])
+					{
+						case 0x00:
+						{
+							char buffer_0x00[50];
+							sprintf(buffer_0x00, "IOU_Done: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
+							Uart_sendstring(UART5, buffer_0x00);
+						}
+							break;
+						case 0xFF:
+						{
+							char buffer_0xFF[50];
+							sprintf(buffer_0xFF, "IOU_Failed: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
+							Uart_sendstring(UART5, buffer_0xFF);
+						}
+							break;
 
-					break;
+						case 0x02:
+						{
+						    uint8_t device = fsp_pkt->payload[1];
+						    uint8_t channel = fsp_pkt->payload[2];
+						    int16_t temp = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
+
+						    char buffer_0x02[100];
+						    sprintf(buffer_0x02, "IOU_Res: CMDcode 0x02 [{Device: %u, Channel: %u} Temp: %d.%d]\n",
+						            device, channel, temp / 10, abs(temp % 10));
+						    Uart_sendstring(UART5, buffer_0x02);
+						}
+						break;
+
+						case 0x03:
+						{
+						    uint8_t channel = fsp_pkt->payload[1];
+						    int16_t temp = (int16_t)((fsp_pkt->payload[2] << 8) | fsp_pkt->payload[3]);
+
+						    char buffer_0x03[100];
+						    sprintf(buffer_0x03, "IOU_Res: CMDcode 0x03 [{Channel: %u} Temp: %d.%d]\n",
+						            channel, temp / 10, temp % 10);
+						    Uart_sendstring(UART5, buffer_0x03);
+						}
+						break;
+
+						case 0x0E:
+						{
+						    uint8_t red = fsp_pkt->payload[1];
+						    uint8_t blue = fsp_pkt->payload[2];
+						    uint8_t green = fsp_pkt->payload[3];
+						    uint8_t white = fsp_pkt->payload[4];
+
+						    char buffer_0x0E[100];
+						    sprintf(buffer_0x0E, "IOU_Res: CMDcode 0x0E [Red: %u, Blue: %u, Green: %u, White: %u]\n",
+						            red, blue, green, white);
+						    Uart_sendstring(UART5, buffer_0x0E);
+						}
+
+						break;
+
+						case 0x10:
+						{
+						    uint8_t duty = fsp_pkt->payload[1];
+
+						    char buffer_0x10[100];
+						    sprintf(buffer_0x10, "IOU_Res: CMDcode 0x10 [Duty: %u%%]\n", duty);
+						    Uart_sendstring(UART5, buffer_0x10);
+						}
+						break;
+
+						case 0x11:
+						{
+						    int16_t accel_x = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
+						    int16_t accel_y = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
+						    int16_t accel_z = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
+
+						    int16_t gyro_x = (int16_t)((fsp_pkt->payload[7] << 8) | fsp_pkt->payload[8]);
+						    int16_t gyro_y = (int16_t)((fsp_pkt->payload[9] << 8) | fsp_pkt->payload[10]);
+						    int16_t gyro_z = (int16_t)((fsp_pkt->payload[11] << 8) | fsp_pkt->payload[12]);
+
+						    char buffer_0x11[200];
+						    sprintf(buffer_0x11, "IOU_Res: CMDcode 0x11 [Accel: X=%d, Y=%d, Z=%d\nGyro: X=%d, Y=%d, Z=%d]\n",
+						            accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z);
+						    Uart_sendstring(UART5, buffer_0x11);
+						}
+						break;
+
+						case 0x12:
+						{
+						    uint16_t pressure = (uint16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
+
+						    char buffer_0x12[100];
+						    sprintf(buffer_0x12, "IOU_Res: CMDcode 0x12 [Press: %u]\n", pressure);
+						    Uart_sendstring(UART5, buffer_0x12);
+						}
+						break;
+
+						case 0x13:
+						{
+							int16_t temp_ntc_channel0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
+							int16_t temp_ntc_channel1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
+							int16_t temp_ntc_channel2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
+							int16_t temp_ntc_channel3 = (int16_t)((fsp_pkt->payload[7] << 8) | fsp_pkt->payload[8]);
+
+							int16_t temp_onewire_channel0 = (int16_t)((fsp_pkt->payload[9] << 8) | fsp_pkt->payload[10]);
+							int16_t temp_onewire_channel1 = (int16_t)((fsp_pkt->payload[11] << 8) | fsp_pkt->payload[12]);
+
+							int16_t temp_sensor = (int16_t)((fsp_pkt->payload[13] << 8) | fsp_pkt->payload[14]);
+
+							int16_t temp_setpoint_channel0 = (int16_t)((fsp_pkt->payload[15] << 8) | fsp_pkt->payload[16]);
+							int16_t temp_setpoint_channel1 = (int16_t)((fsp_pkt->payload[17] << 8) | fsp_pkt->payload[18]);
+							int16_t temp_setpoint_channel2 = (int16_t)((fsp_pkt->payload[19] << 8) | fsp_pkt->payload[20]);
+							int16_t temp_setpoint_channel3 = (int16_t)((fsp_pkt->payload[21] << 8) | fsp_pkt->payload[22]);
+
+							uint16_t voltage_out_tec_channel0 = (uint16_t)((fsp_pkt->payload[23] << 8) | fsp_pkt->payload[24]);
+							uint16_t voltage_out_tec_channel1 = (uint16_t)((fsp_pkt->payload[25] << 8) | fsp_pkt->payload[26]);
+							uint16_t voltage_out_tec_channel2 = (uint16_t)((fsp_pkt->payload[27] << 8) | fsp_pkt->payload[28]);
+							uint16_t voltage_out_tec_channel3 = (uint16_t)((fsp_pkt->payload[29] << 8) | fsp_pkt->payload[30]);
+
+							uint8_t neo_led_r = fsp_pkt->payload[31];
+							uint8_t neo_led_g = fsp_pkt->payload[32];
+							uint8_t neo_led_b = fsp_pkt->payload[33];
+							uint8_t neo_led_w = fsp_pkt->payload[34];
+
+							uint8_t ir_led_duty = fsp_pkt->payload[35];
+
+							char buffer_0x13[1000];
+							sprintf(buffer_0x13, "IOU_Res: CMDcode 0x13 [NTC Temp: Ch0=%s%d.%d, Ch1=%s%d.%d, Ch2=%s%d.%d, Ch3=%s%d.%d\n"
+							                     "OneWire Temp: Ch0=%s%d.%d, Ch1=%s%d.%d\n"
+							                     "Sensor Temp: %s%d.%d\n"
+							                     "Setpoint Temp: Ch0=%s%d.%d, Ch1=%s%d.%d, Ch2=%s%d.%d, Ch3=%s%d.%d\n"
+							                     "TEC Voltage: Ch0=%d.%02d, Ch1=%d.%02d, Ch2=%d.%02d, Ch3=%d.%02d\n"
+							                     "Neo LED: R=%u, G=%u, B=%u, W=%u\n"
+							                     "IR LED Duty: %u%%]\n",
+							        temp_ntc_channel0 < 0 ? "-" : "", abs(temp_ntc_channel0)/ 10, abs(temp_ntc_channel0) % 10,
+							        temp_ntc_channel1 < 0 ? "-" : "", abs(temp_ntc_channel1)/ 10, abs(temp_ntc_channel1) % 10,
+							        temp_ntc_channel2 < 0 ? "-" : "", abs(temp_ntc_channel2)/ 10, abs(temp_ntc_channel2) % 10,
+							        temp_ntc_channel3 < 0 ? "-" : "", abs(temp_ntc_channel3)/ 10, abs(temp_ntc_channel3) % 10,
+							        temp_onewire_channel0 < 0 ? "-" : "", abs(temp_onewire_channel0)/ 10, abs(temp_onewire_channel0) % 10,
+							        temp_onewire_channel1 < 0 ? "-" : "", abs(temp_onewire_channel1)/ 10, abs(temp_onewire_channel1) % 10,
+							        temp_sensor < 0 ? "-" : "", abs(temp_sensor)/ 10, abs(temp_sensor) % 10,
+							        temp_setpoint_channel0 < 0 ? "-" : "", abs(temp_setpoint_channel0)/ 10, abs(temp_setpoint_channel0) % 10,
+							        temp_setpoint_channel1 < 0 ? "-" : "", abs(temp_setpoint_channel1)/ 10, abs(temp_setpoint_channel1) % 10,
+							        temp_setpoint_channel2 < 0 ? "-" : "", abs(temp_setpoint_channel2)/ 10, abs(temp_setpoint_channel2) % 10,
+							        temp_setpoint_channel3 < 0 ? "-" : "", abs(temp_setpoint_channel3)/ 10, abs(temp_setpoint_channel3) % 10,
+							        voltage_out_tec_channel0 / 100, voltage_out_tec_channel0 % 100,
+							        voltage_out_tec_channel1 / 100, voltage_out_tec_channel1 % 100,
+							        voltage_out_tec_channel2 / 100, voltage_out_tec_channel2 % 100,
+							        voltage_out_tec_channel3 / 100, voltage_out_tec_channel3 % 100,
+							        neo_led_r, neo_led_g, neo_led_b, neo_led_w,
+							        ir_led_duty);
+							Uart_sendstring(UART5, buffer_0x13);
+
+						}
+						break;
+
+						default:
+							clear_send_flag();
+							break;
+					}
 				default:
+					clear_send_flag();
 					return FSP_PKT_INVALID;
 					break;
 			}
-
+			clear_send_flag();
 			break;
 		default:
+			clear_send_flag();
 			return FSP_PKT_WRONG_ADR;
 			break;
 
@@ -633,81 +914,81 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 //	{
 //		case FSP_PKT_TYPE_DATA:
 //
-//			Uart_sendstring(USART6, "\nDATA: ");
+//			Uart_sendstring(UART5, "\nDATA: ");
 //
 //			for (int i = 0; i < fsp_pkt->length; i++) {
-//			      Uart_write(USART6, fsp_pkt->payload[i]);
+//			      Uart_write(UART5, fsp_pkt->payload[i]);
 //			}
 //
-//			Uart_sendstring(USART6, "\r\n> ");
+//			Uart_sendstring(UART5, "\r\n> ");
 //
 //			break;
 //		case FSP_PKT_TYPE_DATA_WITH_ACK:
 //
-//			Uart_sendstring(USART6, "\nDATA ACK:");
+//			Uart_sendstring(UART5, "\nDATA ACK:");
 //			for (int i = 0; i < fsp_pkt->length; i++) {
-//			      Uart_write(USART6, fsp_pkt->payload[i]);
+//			      Uart_write(UART5, fsp_pkt->payload[i]);
 //			}
 //
-//			Uart_sendstring(USART6, "\r\n> ");
+//			Uart_sendstring(UART5, "\r\n> ");
 //
 //			break;
 //		case FSP_PKT_TYPE_CMD:
 //
-//			Uart_sendstring(USART6, "\nCMD: ");
+//			Uart_sendstring(UART5, "\nCMD: ");
 //			for (int i = 0; i < fsp_pkt->length; i++) {
-//			      Uart_write(USART6, fsp_pkt->payload[i]);
+//			      Uart_write(UART5, fsp_pkt->payload[i]);
 //			}
 //
-//			Uart_sendstring(USART6, "\r\n> ");
+//			Uart_sendstring(UART5, "\r\n> ");
 //
 //			break;
 //		case FSP_PKT_TYPE_CMD_WITH_ACK:
 //
-//			Uart_sendstring(USART6, "\nCMD ACK:");
+//			Uart_sendstring(UART5, "\nCMD ACK:");
 //			for (int i = 0; i < fsp_pkt->length; i++) {
-//			      Uart_write(USART6, fsp_pkt->payload[i]);
+//			      Uart_write(UART5, fsp_pkt->payload[i]);
 //			}
 //
-//			Uart_sendstring(USART6, "\r\n>");
+//			Uart_sendstring(UART5, "\r\n>");
 //			break;
 //		case FSP_PKT_TYPE_ACK:
 //
 //    		clear_send_flag();
-//    		Uart_sendstring(USART6, "\nACK\r\n> ");
+//    		Uart_sendstring(UART5, "\nACK\r\n> ");
 //
 //
 //			break;
 //		case FSP_PKT_TYPE_NACK:
 //
-//    		Uart_sendstring(USART6, "\nNACK\r\n> ");
+//    		Uart_sendstring(UART5, "\nNACK\r\n> ");
 //
 //			break;
 //		case FSP_PKT_TYPE_CMD_W_DATA:
 //
-//    		Uart_sendstring(USART6, "\nDATA CMD: ");
+//    		Uart_sendstring(UART5, "\nDATA CMD: ");
 //    		char buffer[10];
 //			for (int i = 0; i < fsp_pkt->length; i++) {
 //			      sprintf(buffer, "\n{%d}", fsp_pkt->payload[i]);
-//			      Uart_sendstring(USART6, buffer);
+//			      Uart_sendstring(UART5, buffer);
 //			}
 //
-//			Uart_sendstring(USART6, "\r\n >");
+//			Uart_sendstring(UART5, "\r\n >");
 //			break;
 //		case FSP_PKT_TYPE_CMD_W_DATA_ACK:
 //
-//    		Uart_sendstring(USART6, "\nDATA CMD ACK: ");
+//    		Uart_sendstring(UART5, "\nDATA CMD ACK: ");
 //			for (int i = 0; i < fsp_pkt->length; i++) {
-//			      Uart_write(USART6, fsp_pkt->payload[i]);
+//			      Uart_write(UART5, fsp_pkt->payload[i]);
 //			}
 //
-//			Uart_sendstring(USART6, "\r\n >");
+//			Uart_sendstring(UART5, "\r\n >");
 //			break;
 //
 //		default:
 //
-//			Uart_sendstring(USART6, "\nDEFAULT");
-//			Uart_sendstring(USART6, "\r\n >");
+//			Uart_sendstring(UART5, "\nDEFAULT");
+//			Uart_sendstring(UART5, "\r\n >");
 //
 //			break;
 //

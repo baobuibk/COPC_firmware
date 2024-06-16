@@ -76,7 +76,7 @@ static void COPC_task_update(void)
 
 //		char pos_str2[10];
 //		sprintf(pos_str2, "%d", rxData);
-//		Uart_sendstring(USART6, pos_str2);
+//		Uart_sendstring(UART5, pos_str2);
 
         if (!receiving) {
             if (rxData == FSP_PKT_SOD) {
@@ -93,7 +93,7 @@ static void COPC_task_update(void)
                 if (ret > 0) {
                     char error_msg[50];
                     sprintf(error_msg, "Error: %s\r\n", decode_error_msgs[ret]);
-                    Uart_sendstring(USART6, error_msg);
+                    Uart_sendstring(UART5, error_msg);
                 }
 
 

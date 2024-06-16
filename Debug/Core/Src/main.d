@@ -29,7 +29,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Src/../CMDLine/ACK_packet/ACKsend_packet.h \
  ../Core/Inc/../../Scheduler/scheduler.h \
  ../Core/Src/../../Core/CPOC/CPOC.h \
- ../Core/Src/../../Core/CPOC/../../BSP/UART/uart.h
+ ../Core/Src/../../Core/CPOC/../../BSP/UART/uart.h \
+ ../Core/Src/../CMDLine/global_vars.h ../Core/Src/../CMDLine/rs422.h \
+ ../Core/Src/../CMDLine/../../ThirdParty/libfsp/fsp.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
@@ -65,3 +67,6 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/../../Scheduler/scheduler.h:
 ../Core/Src/../../Core/CPOC/CPOC.h:
 ../Core/Src/../../Core/CPOC/../../BSP/UART/uart.h:
+../Core/Src/../CMDLine/global_vars.h:
+../Core/Src/../CMDLine/rs422.h:
+../Core/Src/../CMDLine/../../ThirdParty/libfsp/fsp.h:

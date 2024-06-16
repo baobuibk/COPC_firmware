@@ -31,8 +31,8 @@ typedef struct SCH_TimerContextTypedef
 
 /* Private define ------------------------------------------------------------*/
 
-#define MAX_TASK                        10
-#define MAX_TIMERS                      10
+#define MAX_TASK                        12
+#define MAX_TIMERS                      12
 
 /* Private macro -------------------------------------------------------------*/
 //START STOP SYS_TICK?

@@ -24,7 +24,8 @@ Core/CMDLine/cmd_IOU/iou_cmd.o: ../Core/CMDLine/cmd_IOU/iou_cmd.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_utils.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_dma.h \
- ../Core/CMDLine/cmd_IOU/../ACK_packet/ACKsend_packet.h
+ ../Core/CMDLine/cmd_IOU/../ACK_packet/ACKsend_packet.h \
+ ../Core/CMDLine/cmd_IOU/../global_vars.h
 ../Core/Inc/../../ThirdParty/libfsp/fsp.h:
 ../Core/CMDLine/cmd_IOU/iou_cmd.h:
 ../Core/CMDLine/cmd_IOU/../cmdline.h:
@@ -53,3 +54,4 @@ Core/CMDLine/cmd_IOU/iou_cmd.o: ../Core/CMDLine/cmd_IOU/iou_cmd.c \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_pwr.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_dma.h:
 ../Core/CMDLine/cmd_IOU/../ACK_packet/ACKsend_packet.h:
+../Core/CMDLine/cmd_IOU/../global_vars.h:

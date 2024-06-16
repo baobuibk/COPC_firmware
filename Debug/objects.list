@@ -8,6 +8,7 @@
 "./Core/CMDLine/cmd_PMU/pmu_cmd.o"
 "./Core/CMDLine/cmdline.o"
 "./Core/CMDLine/command.o"
+"./Core/CMDLine/rs422.o"
 "./Core/CPOC/CPOC.o"
 "./Core/LED/status_led.o"
 "./Core/SYS/sys.o"

@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define	COMMAND_MAX_LENGTH	128
+#define	COMMAND_MAX_LENGTH	255
 
 void	command_init(void);
 void	command_create_task(void);
@@ -31,6 +31,8 @@ int Cmd_help_cam(int argc, char *argv[]);
 int Cmd_help_iou(int argc, char *argv[]);
 int Cmd_status_now(int argc, char *argv[]);
 int Cmd_memory_usage(int argc, char *argv[]);
+int Cmd_auto_report_ena(int argc, char *argv[]);
+int Cmd_auto_report_dis(int argc, char *argv[]);
 int Cmd_time_get(int argc, char *argv[]);
 int Cmd_time_set(int argc, char *argv[]);
 int Cmd_cpoc_reset(int argc, char *argv[]);

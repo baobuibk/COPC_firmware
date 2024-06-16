@@ -30,6 +30,8 @@
 #include "../../ThirdParty/libfsp/fsp.h"
 #include "../CMDLine/ACK_packet/ACKsend_packet.h"
 #include "../../Core/CPOC/CPOC.h"
+#include "../CMDLine/global_vars.h"
+#include "../CMDLine/rs422.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -144,6 +146,8 @@ int main(void)
 
   WDT_create_task();
 
+  rs422_create_task();
+
   SCH_StartSchedular();
   /* USER CODE END 2 */
 
@@ -177,7 +181,7 @@ void SystemClock_Config(void)
   {
 
   }
-  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_4, 192, LL_RCC_PLLP_DIV_6);
+  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_4, 192, LL_RCC_PLLP_DIV_4);
   LL_RCC_PLL_Enable();
 
    /* Wait till PLL is ready */
@@ -189,7 +193,7 @@ void SystemClock_Config(void)
   {
   }
   LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_2);
-  LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_1);
+  LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_2);
   LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
   LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
 
@@ -198,8 +202,8 @@ void SystemClock_Config(void)
   {
 
   }
-  LL_Init1msTick(32000000);
-  LL_SetSystemCoreClock(32000000);
+  LL_Init1msTick(48000000);
+  LL_SetSystemCoreClock(48000000);
 }
 
 /**
@@ -479,7 +483,7 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 1 */
 
   /* USER CODE END USART1_Init 1 */
-  USART_InitStruct.BaudRate = 9600;
+  USART_InitStruct.BaudRate = 38400;
   USART_InitStruct.DataWidth = LL_USART_DATAWIDTH_8B;
   USART_InitStruct.StopBits = LL_USART_STOPBITS_1;
   USART_InitStruct.Parity = LL_USART_PARITY_NONE;
@@ -644,7 +648,7 @@ static void MX_USART6_UART_Init(void)
   /* USER CODE BEGIN USART6_Init 1 */
 
   /* USER CODE END USART6_Init 1 */
-  USART_InitStruct.BaudRate = 9600;
+  USART_InitStruct.BaudRate = 115200;
   USART_InitStruct.DataWidth = LL_USART_DATAWIDTH_8B;
   USART_InitStruct.StopBits = LL_USART_STOPBITS_1;
   USART_InitStruct.Parity = LL_USART_PARITY_NONE;

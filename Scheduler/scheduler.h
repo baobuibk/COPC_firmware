@@ -84,6 +84,7 @@ typedef enum SCH_SoftTimerTypedef
   SCH_TIM_WDT,
   SCH_TIM_DELAY,
   SCH_TIM_ACK,
+  SCH_TIM_RS422,
   SCH_TIM_LAST
 } SCH_SoftTimerTypedef;
 

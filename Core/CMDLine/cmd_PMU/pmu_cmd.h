@@ -13,11 +13,20 @@
 #define CMD_CODE_BAT_VOL							0x02
 #define CMD_CODE_PARAG_IN							0x03
 #define CMD_CODE_PARAG_OUT							0x04
+#define CMD_CODE_PMU_TEMP_POINT						0x05
+#define CMD_CODE_PMU_OUTPUT							0x06
+#define CMD_CODE_PMU_PWM							0x07
+#define CMD_CODE_PMU_ALL							0x08
 
 
 int Cmd_pmu_get_temp(int argc, char *argv[]);
 int Cmd_pmu_bat_vol(int argc, char *argv[]);
 int Cmd_pmu_parag_in(int argc, char *argv[]);
 int Cmd_pmu_parag_out(int argc, char *argv[]);
+int Cmd_pmu_set_temppoint(int argc, char *argv[]);
+int Cmd_pmu_set_output(int argc, char *argv[]);
+int Cmd_pmu_set_pwm(int argc, char *argv[]);
+int Cmd_pmu_get_all(int argc, char *argv[]);
+
 
 #endif /* CMDLINE_CMD_PMU_PMU_CMD_H_ */

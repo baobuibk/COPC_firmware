@@ -23,7 +23,8 @@ Core/CMDLine/ACK_packet/ACKsend_packet.o: \
  ../Core/Inc/../../Scheduler/scheduler.h \
  ../Core/Inc/../../Scheduler/../Core/Common/basetypedef.h \
  ../Core/Inc/../../ThirdParty/libfsp/fsp.h \
- ../Core/Inc/../../BSP/UART/uart.h
+ ../Core/Inc/../../BSP/UART/uart.h \
+ ../Core/CMDLine/ACK_packet/../global_vars.h
 ../Core/CMDLine/ACK_packet/ACKsend_packet.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:
@@ -49,3 +50,4 @@ Core/CMDLine/ACK_packet/ACKsend_packet.o: \
 ../Core/Inc/../../Scheduler/../Core/Common/basetypedef.h:
 ../Core/Inc/../../ThirdParty/libfsp/fsp.h:
 ../Core/Inc/../../BSP/UART/uart.h:
+../Core/CMDLine/ACK_packet/../global_vars.h:

@@ -229,5 +229,6 @@ void fsp_encode(fsp_packet_t *fsp, uint8_t *pkt, uint8_t *pkt_len);
 uint8_t fsp_decode(uint8_t byte, fsp_packet_t *fsp);
 void frame_encode(fsp_packet_t *fsp, uint8_t *frame, uint8_t *frame_len);
 int frame_decode(uint8_t *buffer, uint8_t length, fsp_packet_t *pkt);
+int frame_decode_rs422(uint8_t *buffer, uint8_t length, fsp_packet_t *pkt);
 int frame_processing(fsp_packet_t *fsp_pkt);
 #endif /* LIBFSP_FSP_H_ */

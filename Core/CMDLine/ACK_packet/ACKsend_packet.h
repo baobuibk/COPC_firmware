@@ -17,7 +17,7 @@ void clear_send_flag(void);
 void send_packet_init(void);
 void set_fsp_packet(uint8_t *encoded_pkt, uint8_t encoded_len);
 void send_packet_create_task(void);
-void status_ACKsend_update(void);
+
 
 
 #endif /* CMDLINE_CMD_IOU_ACKSEND_PACKET_H_ */
