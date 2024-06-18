@@ -175,105 +175,135 @@ void	command_init(void)
 	Uart_sendstring(UART5,"\r\n");
 	command_send_splash();
 
+    Uart_sendstring(USART6, "\r\n");
+    Uart_sendstring(USART6, "\r\n");
+    Uart_sendstring(USART6, "> CPOC FIRMWARE V1.2.0 \r\n");
+    Uart_sendstring(USART6, "\r\n");
+    command_send_splash();
+
 	tCmdLineEntry *pEntry;
 
 
 	Uart_sendstring(UART5, "\nStart with <help_xxxx> command\r\n");
 	Uart_sendstring(UART5, "-------------------------------------\r\n");
+    Uart_sendstring(USART6, "\nStart with <help_xxxx> command\r\n");
+    Uart_sendstring(USART6, "-------------------------------------\r\n");
+
 	pEntry = &g_psCmdTable[0];
 
 	while (pEntry->pcCmd) {
 		Uart_sendstring(UART5, pEntry->pcCmd);
 		Uart_sendstring(UART5, pEntry->pcHelp);
 		Uart_sendstring(UART5, "\r\n");
+
+        Uart_sendstring(USART6, pEntry->pcCmd);
+        Uart_sendstring(USART6, pEntry->pcHelp);
+        Uart_sendstring(USART6, "\r\n");
+
 	    if (pEntry == &g_psCmdTable[11]) {
 	        break;
 	    }
 	    pEntry++;
 	}
 
-
-
 	Uart_sendstring(UART5, "\r\n> ");
-
+    Uart_sendstring(USART6, "\r\n> ");
 
 }
+
+
+void process_command(USART_TypeDef* USARTx, char rxData);
+
 
 static void command_task_update(void)
 {
     char rxData;
-    int8_t ret_val;
 
-    while (IsDataAvailable(UART5))
+
+    while (IsDataAvailable(UART5) || IsDataAvailable(USART6))
     {
+        if (IsDataAvailable(UART5)) {
+            rxData = Uart_read(UART5);
+            Uart_write(UART5, rxData);
+            process_command(UART5, rxData);
+        }
 
-        rxData = Uart_read(UART5);
-        Uart_write(UART5, rxData);
-        if ((rxData == '\r') || (rxData == '\n'))
-        {
-            if (s_commandBufferIndex > 0)
-            {
-                s_commandBuffer[s_commandBufferIndex] = 0;
-                s_commandBufferIndex++;
-                ret_val = CmdLineProcess(s_commandBuffer);
-                s_commandBufferIndex = 0;
-                Uart_sendstring(UART5, "\r\n> ");
-                Uart_sendstring(UART5, ErrorCode[ret_val]);
-                Uart_sendstring(UART5, "> ");
-            }
-            else
-            {
-                Uart_sendstring(UART5, "\r\n> ");
-            }
-        }
-        else if ((rxData == 8) || (rxData == 127))
-        {
-            if (s_commandBufferIndex > 0)
-            {
-                s_commandBufferIndex--;
-            }
-        }
-        else
-        {
-            s_commandBuffer[s_commandBufferIndex] = rxData;
-            s_commandBufferIndex++;
-            if (s_commandBufferIndex > COMMAND_MAX_LENGTH)
-            {
-                s_commandBufferIndex = 0;
-            }
+        if (IsDataAvailable(USART6)) {
+            rxData = Uart_read(USART6);
+            Uart_write(USART6, rxData);
+            process_command(USART6, rxData);
         }
     }
 }
 
+void process_command(USART_TypeDef* USARTx, char rxData)
+{
+    int8_t ret_val;
+
+    if ((rxData == '\r') || (rxData == '\n'))
+    {
+        if (s_commandBufferIndex > 0)
+        {
+            s_commandBuffer[s_commandBufferIndex] = 0;
+            s_commandBufferIndex++;
+            ret_val = CmdLineProcess(s_commandBuffer,USARTx);
+            s_commandBufferIndex = 0;
+            Uart_sendstring(USARTx, "\r\n> ");
+            Uart_sendstring(USARTx, ErrorCode[ret_val]);
+            Uart_sendstring(USARTx, "> ");
+        }
+        else
+        {
+            Uart_sendstring(USARTx, "\r\n> ");
+        }
+    }
+    else if ((rxData == 8) || (rxData == 127))
+    {
+        if (s_commandBufferIndex > 0)
+        {
+            s_commandBufferIndex--;
+        }
+    }
+    else
+    {
+        s_commandBuffer[s_commandBufferIndex] = rxData;
+        s_commandBufferIndex++;
+        if (s_commandBufferIndex > COMMAND_MAX_LENGTH)
+        {
+            s_commandBufferIndex = 0;
+        }
+    }
+}
+
+//USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
 
 int Cmd_help(int argc, char *argv[]) {
-	tCmdLineEntry *pEntry;
-	Uart_sendstring(UART5, "\nSimple commands\r\n");
-	Uart_sendstring(UART5, "------------------\r\n");
-	pEntry = &g_psCmdTable[0];
+    tCmdLineEntry *pEntry;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
 
+    Uart_sendstring(USARTx, "\nSimple commands\r\n");
+    Uart_sendstring(USARTx, "------------------\r\n");
+    pEntry = &g_psCmdTable[0];
 
-	while (pEntry->pcCmd) {
-		Uart_sendstring(UART5, pEntry->pcCmd);
-		Uart_sendstring(UART5, pEntry->pcHelp);
-		Uart_sendstring(UART5, "\r\n");
-	    if (pEntry == &g_psCmdTable[11]) {
-	        break;
-	    }
-	    pEntry++;
-	}
+    while (pEntry->pcCmd) {
+        Uart_sendstring(USARTx, pEntry->pcCmd);
+        Uart_sendstring(USARTx, pEntry->pcHelp);
+        Uart_sendstring(USARTx, "\r\n");
+        if (pEntry == &g_psCmdTable[11]) {
+            break;
+        }
+        pEntry++;
+    }
 
-	// Return success.
-	return (CMDLINE_OK);
-
+    return (CMDLINE_OK);
 }
 
 // 9table <-> 8 o day
 int Cmd_help_all(int argc, char *argv[]) {
 	tCmdLineEntry *pEntry;
-
-	Uart_sendstring(UART5, "\nAvailable commands\r\n");
-	Uart_sendstring(UART5, "------------------\r\n");
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+	Uart_sendstring(USARTx, "\nAvailable commands\r\n");
+	Uart_sendstring(USARTx, "------------------\r\n");
 
 	// Point at the beginning of the command table.
 	pEntry = &g_psCmdTable[0];
@@ -282,29 +312,29 @@ int Cmd_help_all(int argc, char *argv[]) {
 	// end of the table has been reached when the command name is NULL.
 	while (pEntry->pcCmd) {
 		// Print the command name and the brief description.
-		Uart_sendstring(UART5, pEntry->pcCmd);
-		Uart_sendstring(UART5, pEntry->pcHelp);
-		Uart_sendstring(UART5, "\r\n");
+		Uart_sendstring(USARTx, pEntry->pcCmd);
+		Uart_sendstring(USARTx, pEntry->pcHelp);
+		Uart_sendstring(USARTx, "\r\n");
 
 
 	    if (pEntry == &g_psCmdTable[11]) {
-	        Uart_sendstring(UART5, "\n--------------CPOC Command List-------------\r\n");
+	        Uart_sendstring(USARTx, "\n--------------CPOC Command List-------------\r\n");
 	    }
 
 	    else if (pEntry == &g_psCmdTable[27]) {
-	        Uart_sendstring(UART5, "\n--------------PMU Command List-------------\r\n");
+	        Uart_sendstring(USARTx, "\n--------------PMU Command List-------------\r\n");
 	    }
 
 	    else if (pEntry == &g_psCmdTable[34]) {
-	        Uart_sendstring(UART5, "\n--------------PDU Command List-------------\r\n");
+	        Uart_sendstring(USARTx, "\n--------------PDU Command List-------------\r\n");
 	    }
 
 	    else if (pEntry == &g_psCmdTable[40]) {
-	        Uart_sendstring(UART5, "\n--------------CAM Command List-------------\r\n");
+	        Uart_sendstring(USARTx, "\n--------------CAM Command List-------------\r\n");
 	    }
 
 	    else if (pEntry == &g_psCmdTable[41]) {
-	        Uart_sendstring(UART5, "\n--------------IOU Command List-------------\r\n");
+	        Uart_sendstring(USARTx, "\n--------------IOU Command List-------------\r\n");
 	    }
 
 
@@ -312,14 +342,15 @@ int Cmd_help_all(int argc, char *argv[]) {
 		pEntry++;
 
 	}
-	Uart_sendstring(UART5, "--------------    END    -------------\r\n");
+	Uart_sendstring(USARTx, "--------------    END    -------------\r\n");
 	// Return success.
 	return (CMDLINE_OK);
 }
 
 int Cmd_help_cpoc(int argc, char *argv[]) {
 	tCmdLineEntry *pEntry;
-    Uart_sendstring(UART5, "--------------CPOC Command List-------------\r\n");
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    Uart_sendstring(USARTx, "--------------CPOC Command List-------------\r\n");
 	// Point at the beginning of the command table.
 	pEntry = &g_psCmdTable[12];
 
@@ -327,9 +358,9 @@ int Cmd_help_cpoc(int argc, char *argv[]) {
 	// end of the table has been reached when the command name is NULL.
 	while (pEntry->pcCmd) {
 		// Print the command name and the brief description.
-		Uart_sendstring(UART5, pEntry->pcCmd);
-		Uart_sendstring(UART5, pEntry->pcHelp);
-		Uart_sendstring(UART5, "\r\n");
+		Uart_sendstring(USARTx, pEntry->pcCmd);
+		Uart_sendstring(USARTx, pEntry->pcHelp);
+		Uart_sendstring(USARTx, "\r\n");
 
 
 
@@ -347,7 +378,8 @@ int Cmd_help_cpoc(int argc, char *argv[]) {
 }
 int Cmd_help_pmu(int argc, char *argv[]) {
 	tCmdLineEntry *pEntry;
-    Uart_sendstring(UART5, "--------------PMU Command List-------------\r\n");
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    Uart_sendstring(USARTx, "--------------PMU Command List-------------\r\n");
 	// Point at the beginning of the command table.
 	pEntry = &g_psCmdTable[28];
 
@@ -355,9 +387,9 @@ int Cmd_help_pmu(int argc, char *argv[]) {
 	// end of the table has been reached when the command name is NULL.
 	while (pEntry->pcCmd) {
 		// Print the command name and the brief description.
-		Uart_sendstring(UART5, pEntry->pcCmd);
-		Uart_sendstring(UART5, pEntry->pcHelp);
-		Uart_sendstring(UART5, "\r\n");
+		Uart_sendstring(USARTx, pEntry->pcCmd);
+		Uart_sendstring(USARTx, pEntry->pcHelp);
+		Uart_sendstring(USARTx, "\r\n");
 
 
 
@@ -374,7 +406,8 @@ int Cmd_help_pmu(int argc, char *argv[]) {
 }
 int Cmd_help_pdu(int argc, char *argv[]) {
 	tCmdLineEntry *pEntry;
-    Uart_sendstring(UART5, "--------------PDU Command List-------------\r\n");
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    Uart_sendstring(USARTx, "--------------PDU Command List-------------\r\n");
 
 	// Point at the beginning of the command table.
 	pEntry = &g_psCmdTable[35];
@@ -383,9 +416,9 @@ int Cmd_help_pdu(int argc, char *argv[]) {
 	// end of the table has been reached when the command name is NULL.
 	while (pEntry->pcCmd) {
 		// Print the command name and the brief description.
-		Uart_sendstring(UART5, pEntry->pcCmd);
-		Uart_sendstring(UART5, pEntry->pcHelp);
-		Uart_sendstring(UART5, "\r\n");
+		Uart_sendstring(USARTx, pEntry->pcCmd);
+		Uart_sendstring(USARTx, pEntry->pcHelp);
+		Uart_sendstring(USARTx, "\r\n");
 
 
 
@@ -402,7 +435,8 @@ int Cmd_help_pdu(int argc, char *argv[]) {
 }
 int Cmd_help_cam(int argc, char *argv[]) {
 	tCmdLineEntry *pEntry;
-    Uart_sendstring(UART5, "--------------CAM Command List-------------\r\n");
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    Uart_sendstring(USARTx, "--------------CAM Command List-------------\r\n");
 
 	// Point at the beginning of the command table.
 	pEntry = &g_psCmdTable[41];
@@ -411,9 +445,9 @@ int Cmd_help_cam(int argc, char *argv[]) {
 	// end of the table has been reached when the command name is NULL.
 	while (pEntry->pcCmd) {
 		// Print the command name and the brief description.
-		Uart_sendstring(UART5, pEntry->pcCmd);
-		Uart_sendstring(UART5, pEntry->pcHelp);
-		Uart_sendstring(UART5, "\r\n");
+		Uart_sendstring(USARTx, pEntry->pcCmd);
+		Uart_sendstring(USARTx, pEntry->pcHelp);
+		Uart_sendstring(USARTx, "\r\n");
 
 
 
@@ -430,7 +464,8 @@ int Cmd_help_cam(int argc, char *argv[]) {
 }
 int Cmd_help_iou(int argc, char *argv[]) {
 	tCmdLineEntry *pEntry;
-    Uart_sendstring(UART5, "--------------IOU Command List-------------\r\n");
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    Uart_sendstring(USARTx, "--------------IOU Command List-------------\r\n");
 
 
 	// Point at the beginning of the command table.
@@ -440,9 +475,9 @@ int Cmd_help_iou(int argc, char *argv[]) {
 	// end of the table has been reached when the command name is NULL.
 	while (pEntry->pcCmd) {
 		// Print the command name and the brief description.
-		Uart_sendstring(UART5, pEntry->pcCmd);
-		Uart_sendstring(UART5, pEntry->pcHelp);
-		Uart_sendstring(UART5, "\r\n");
+		Uart_sendstring(USARTx, pEntry->pcCmd);
+		Uart_sendstring(USARTx, pEntry->pcHelp);
+		Uart_sendstring(USARTx, "\r\n");
 
 
 	    if (pEntry == &g_psCmdTable[23]) {
@@ -462,7 +497,8 @@ int Cmd_help_iou(int argc, char *argv[]) {
 
 
 int NotYetDefine(int argc, char *argv[]) {
-	Uart_sendstring(UART5, "\nThis function is not defined yet \r\n");
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+	Uart_sendstring(USARTx, "\nThis function is not defined yet \r\n");
 	// Return success.
 	return (CMDLINE_OK);
 }
@@ -474,6 +510,7 @@ int Cmd_splash(int argc, char *argv[]) {
 }
 
 int Cmd_status_now(int argc, char *argv[]){
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
     uint8_t day, date, month, year, hour, min, sec;
     float temp;
     char buffer[100];
@@ -485,25 +522,25 @@ int Cmd_status_now(int argc, char *argv[]){
     temp = DS3231_GetTemperature();
 
     sprintf(buffer, "\n%02d:%02d:%02d %02d/%02d/%04d\r\n", hour, min, sec, date, month, 2000 + year);
-    Uart_sendstring(UART5, buffer);
+    Uart_sendstring(USARTx, buffer);
 
     sprintf(buffer, "Temperature: %.2f *C\r\n", temp);
-    Uart_sendstring(UART5, buffer);
+    Uart_sendstring(USARTx, buffer);
     sprintf(buffer, "HardwareVer: CPOC Hardware 1.2.0\r\n");
-    Uart_sendstring(UART5, buffer);
+    Uart_sendstring(USARTx, buffer);
     sprintf(buffer, "FirmwareVer: CPOC Firmware 1.2.0\r\n");
-    Uart_sendstring(UART5, buffer);
+    Uart_sendstring(USARTx, buffer);
 
     if (LL_GPIO_IsOutputPinSet(ENABLE_RF_GPIO_Port, ENABLE_RF_Pin)) {
         sprintf(buffer, "Enable: RF[OFF]\r\n");
-        Uart_sendstring(UART5, buffer);
+        Uart_sendstring(USARTx, buffer);
     } else {
         sprintf(buffer, "Enable: RF[ON]\r\n");
-        Uart_sendstring(UART5, buffer);
+        Uart_sendstring(USARTx, buffer);
     }
 
     sprintf(buffer, "MuxMode: Auto\r\n");
-    Uart_sendstring(UART5, buffer);
+    Uart_sendstring(USARTx, buffer);
 
 	// Return success.
 	return (CMDLINE_OK);
@@ -515,18 +552,18 @@ uint32_t RS422_PERIOD = 3000;
 
 int Cmd_auto_report_ena(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
-
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
     int sec = atoi(argv[1]);
     if (sec <= 0) {
-        Uart_sendstring(UART5,"\nPlease provide a positive integer.\n");
+        Uart_sendstring(USARTx,"\nPlease provide a positive integer.\n");
         return CMDLINE_INVALID_ARG;
     }
 
     if (sec > 20)
     	{
-    	Uart_sendstring(UART5,"Arg < 20\n");
+    	Uart_sendstring(USARTx,"Arg < 20\n");
     	return CMDLINE_INVALID_ARG;
     	}
 
@@ -535,23 +572,24 @@ int Cmd_auto_report_ena(int argc, char *argv[])
 
     char msg[50];
     sprintf(msg, "\nAuto report %d seconds.\n", sec);
-    Uart_sendstring(UART5, msg);
+    Uart_sendstring(USARTx, msg);
     return CMDLINE_OK;
 }
 
 
 int Cmd_auto_report_dis(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
-
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
     auto_report_enabled = 0;
 
-    printf("Auto report disabled.\n");
+    Uart_sendstring(USARTx, "Auto report disabled.\n");
     return CMDLINE_OK;
 }
 
 int Cmd_memory_usage(int argc, char *argv[]) {
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
     // STM32F405RGT7 có 192KB SRAM [[5]]
     uint32_t totalRAM = 192 * 1024;
     uint32_t usedRAM = SRAM1_BASE + totalRAM - __get_MSP();
@@ -565,7 +603,7 @@ int Cmd_memory_usage(int argc, char *argv[]) {
 
     char buffer[100];
     sprintf(buffer, "\nRAM: %.2f%% used\r\nFlash: %.2f%% used\r\n", ramUsage, flashUsage);
-    Uart_sendstring(UART5, buffer);
+    Uart_sendstring(USARTx, buffer);
 
     return CMDLINE_OK;
 }
@@ -574,18 +612,19 @@ int Cmd_memory_usage(int argc, char *argv[]) {
 int Cmd_time_get(int argc, char *argv[]){
     uint8_t day, date, month, year, hour, min, sec;
     char buffer[100];
-
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
     // Get current date and time from DS3231
     DS3231_GetDateTime(&day, &date, &month, &year, &hour, &min, &sec);
-    sprintf(buffer, "\n%02d:%02d:%02d %02d/%02d/%04d\r\n", hour, min, sec, date, month, 2000 + year);    Uart_sendstring(UART5, buffer);
+    sprintf(buffer, "\n%02d:%02d:%02d %02d/%02d/%04d\r\n", hour, min, sec, date, month, 2000 + year);
+    Uart_sendstring(USARTx, buffer);
 	// Return success.
 	return (CMDLINE_OK);
 }
 
 int Cmd_time_set(int argc, char *argv[]){
-    if (argc < 7) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 7) return CMDLINE_TOO_MANY_ARGS;
-
+    if ((argc-1) < 7) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 7) return CMDLINE_TOO_MANY_ARGS;
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
     uint8_t hour = atoi(argv[1]);
     uint8_t min = atoi(argv[2]);
     uint8_t sec = atoi(argv[3]);
@@ -600,7 +639,7 @@ int Cmd_time_set(int argc, char *argv[]){
 
     char buffer[100];
     sprintf(buffer, "Time set to: %02d:%02d:%02d %02d/%02d/%04d\r\n", hour, min, sec, date, month, 2000 + year);
-    Uart_sendstring(UART5, buffer);
+    Uart_sendstring(USARTx, buffer);
 
 	// Return success.
 	return (CMDLINE_OK);
@@ -633,15 +672,17 @@ int Cmd_cpoc_reset(int argc, char *argv[]){
 //}
 
 int Cmd_rf_ena(int argc, char *argv[]){
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
 	LL_GPIO_ResetOutputPin(ENABLE_RF_GPIO_Port, ENABLE_RF_Pin);
-	 Uart_sendstring(UART5, "\nRF Set to Enable\r\n");
+	 Uart_sendstring(USARTx, "\nRF Set to Enable\r\n");
 	// Return success.
 	return (CMDLINE_OK);
 }
 
 int Cmd_rf_dis(int argc, char *argv[]){
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
 	LL_GPIO_SetOutputPin(ENABLE_RF_GPIO_Port, ENABLE_RF_Pin);
-	Uart_sendstring(UART5, "\nRF Disable\r\n");
+	Uart_sendstring(USARTx, "\nRF Disable\r\n");
 	// Return success.
 	return (CMDLINE_OK);
 }
@@ -656,30 +697,34 @@ void	command_create_task(void)
 
 void	command_send_splash(void)
 {
-	Uart_sendstring(UART5, "------------------------------------------------\r\n");
-	Uart_sendstring(UART5, "--        ____                                --\r\n");
-	Uart_sendstring(UART5, "--       / ___| _ __   __ _  ___ ___          --\r\n");
-	Uart_sendstring(UART5, "--       \\___ \\| '_ \\ / _` |/ __/ _ \\         --  \r\n");
-	Uart_sendstring(UART5, "--        ___) | |_) | (_| | (_|  __/         --\r\n");
-	Uart_sendstring(UART5, "--       |____/| -__/ \\__,_|\\___\\___|         --  \r\n");
-	Uart_sendstring(UART5, "--             |_|                            --\r\n");
-	Uart_sendstring(UART5, "--     _     _ _     _____         _          --\r\n");
-	Uart_sendstring(UART5, "--    | |   (_|_)_ _|_   _|__  ___| |__       --\r\n");
-	Uart_sendstring(UART5, "--    | |   | | | '_ \\| |/ _ \\/ __| '_ \\      --\r\n");
-	Uart_sendstring(UART5, "--    | |___| | | | | | |  __/ (__| | | |     --\r\n");
-	Uart_sendstring(UART5, "--    |_____|_|_|_| |_|_|\\___|\\___| |_|_|     --\r\n");
-	Uart_sendstring(UART5, "------------------------------------------------\r\n");
-	Uart_sendstring(UART5, "--           ____ ____   ___   ____           --\r\n");
-	Uart_sendstring(UART5, "--          / ___|  _ \\ / _ \\ / ___|          --\r\n");
-	Uart_sendstring(UART5, "--         | |   | |_) | | | | |              --\r\n");
-	Uart_sendstring(UART5, "--         | |___|  __/| |_| | |___           --\r\n");
-	Uart_sendstring(UART5, "--          \\____|_|    \\___/ \\____|          -- \r\n");
-	Uart_sendstring(UART5, "--                  _   ___   ___             --\r\n");
-	Uart_sendstring(UART5, "--          __   __/ | / _ \\ / _ \\            -- \r\n");
-	Uart_sendstring(UART5, "--          \\ \\ / /| || | | | | | |           --  \r\n");
-	Uart_sendstring(UART5, "--           \\ V / | || |_| | |_| |           -- \r\n");
-	Uart_sendstring(UART5, "--            \\_/  |_(_)___(_)___/            -- \r\n");
-    Uart_sendstring(UART5, "------------------------------------------------\r\n");
+	Uart_sendstring(USART6, "------------------------------------------------\r\n");
+	Uart_sendstring(USART6, "--        ____                                --\r\n");
+	Uart_sendstring(USART6, "--       / ___| _ __   __ _  ___ ___          --\r\n");
+	Uart_sendstring(USART6, "--       \\___ \\| '_ \\ / _` |/ __/ _ \\         --  \r\n");
+	Uart_sendstring(USART6, "--        ___) | |_) | (_| | (_|  __/         --\r\n");
+	Uart_sendstring(USART6, "--       |____/| -__/ \\__,_|\\___\\___|         --  \r\n");
+	Uart_sendstring(USART6, "--             |_|                            --\r\n");
+	Uart_sendstring(USART6, "--     _     _ _     _____         _          --\r\n");
+	Uart_sendstring(USART6, "--    | |   (_|_)_ _|_   _|__  ___| |__       --\r\n");
+	Uart_sendstring(USART6, "--    | |   | | | '_ \\| |/ _ \\/ __| '_ \\      --\r\n");
+	Uart_sendstring(USART6, "--    | |___| | | | | | |  __/ (__| | | |     --\r\n");
+	Uart_sendstring(USART6, "--    |_____|_|_|_| |_|_|\\___|\\___| |_|_|     --\r\n");
+	Uart_sendstring(USART6, "------------------------------------------------\r\n");
+	Uart_sendstring(USART6, "--           ____ ____   ___   ____           --\r\n");
+	Uart_sendstring(USART6, "--          / ___|  _ \\ / _ \\ / ___|          --\r\n");
+	Uart_sendstring(USART6, "--         | |   | |_) | | | | |              --\r\n");
+	Uart_sendstring(USART6, "--         | |___|  __/| |_| | |___           --\r\n");
+	Uart_sendstring(USART6, "--          \\____|_|    \\___/ \\____|          -- \r\n");
+	Uart_sendstring(USART6, "--                  _   ___   ___             --\r\n");
+	Uart_sendstring(USART6, "--          __   __/ | / _ \\ / _ \\            -- \r\n");
+	Uart_sendstring(USART6, "--          \\ \\ / /| || | | | | | |           --  \r\n");
+	Uart_sendstring(USART6, "--           \\ V / | || |_| | |_| |           -- \r\n");
+	Uart_sendstring(USART6, "--            \\_/  |_(_)___(_)___/            -- \r\n");
+    Uart_sendstring(USART6, "------------------------------------------------\r\n");
 
+	Uart_sendstring(USART6, "> ");
+
+	Uart_sendstring(UART5, "\r\n");
+	Uart_sendstring(UART5, ">>>>> CPOC V1.2.0 RS422 <<<<<\r\n");
 	Uart_sendstring(UART5, "> ");
 }

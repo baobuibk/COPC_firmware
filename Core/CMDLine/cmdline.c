@@ -51,7 +51,7 @@ static char *g_ppcArgv[CMDLINE_MAX_ARGS + 1];
 //
 //*****************************************************************************
 uint8_t
-CmdLineProcess(char *pcCmdLine)
+CmdLineProcess(char *pcCmdLine, USART_TypeDef* USARTx)
 {
     char *pcChar;
     uint_fast8_t ui8Argc;
@@ -126,6 +126,8 @@ CmdLineProcess(char *pcCmdLine)
     //
     if(ui8Argc)
     {
+        g_ppcArgv[ui8Argc] = (char*)USARTx;
+        ui8Argc++;
         //
         // Start at the beginning of the command table, to look for a matching
         // command.
@@ -154,6 +156,8 @@ CmdLineProcess(char *pcCmdLine)
             //
             psCmdEntry++;
         }
+
+
     }
 
     //

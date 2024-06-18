@@ -4,6 +4,7 @@
  *  Created on: May 23, 2024
  *      Author: CAO HIEU
  */
+#include "main.h"
 
 #ifndef CMDLINE_CMDLINE_H_
 #define CMDLINE_CMDLINE_H_
@@ -101,7 +102,7 @@ extern tCmdLineEntry g_psCmdTable[];
 // Prototypes for the APIs.
 //
 //*****************************************************************************
-extern uint8_t CmdLineProcess(char *pcCmdLine);
+extern uint8_t CmdLineProcess(char *pcCmdLine, USART_TypeDef* USARTx);
 
 //*****************************************************************************
 //

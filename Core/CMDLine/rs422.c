@@ -80,188 +80,20 @@ void switch_board(uint8_t board_id) {
 
 
 
-
-uint8_t pdu_frame[] = {0xCA, 0x01, 0x03, 0x01, 0x04, 0x06, 0xAA, 0xBF, 0xEF};
-uint8_t pmu_frame[] = {0xCA, 0x01, 0x02, 0x01, 0x04, 0x08, 0x3D, 0xC5, 0xEF};
-uint8_t iou_frame[] = {0xCA, 0x01, 0x05, 0x01, 0x04, 0x13, 0xCF, 0xB2, 0xEF};
-
-
-
-
-void RS422_create_task(void)
-{
-    SCH_TASK_CreateTask(&RS422_task_context.taskHandle, &RS422_task_context.taskProperty);
-    SCH_TIM_Start(SCH_TIM_RS422, RS422_PERIOD);
-}
-
-
-
-
-
-
-
+uint8_t sourceArray[282];
+uint8_t destArray[282];
 
 
 void RS422_periodic_task(void) {
-	if (auto_report_enabled) {
-
-//	if  not in send and wait
-		uint8_t receiving = 0;
-		uint8_t receive_buffer[FSP_PKT_MAX_LENGTH];
-		uint8_t receive_index = 0;
-
-		uint8_t *frame;
-		uint8_t frame_len;
+	if (rs422_report_enabled) {
 		if (SCH_TIM_HasCompleted(SCH_TIM_RS422))
 		{
-
-			if(!sendFlag){
-				switch_board(0);
-				Uart_flush(USART1);
-
-				frame = pdu_frame;
-				frame_len = sizeof(pdu_frame);
-				for (int i = 0; i < frame_len; i++) {
-					Uart_write(USART1, frame[i]);
-				}
-
-				uint8_t rxData;
-				SCH_Delay(300);
-				receiving = 0;
-				receive_buffer[FSP_PKT_MAX_LENGTH];
-				receive_index = 0;
-
-				while (IsDataAvailable(USART1))
-				{
-					rxData = Uart_read(USART1);
-
-					if (!receiving) {
-						if (rxData == FSP_PKT_SOD) {
-							receiving = 1;
-							receive_index = 0;
-						}
-					} else {
-
-						if (rxData == FSP_PKT_EOF) {
-							receiving = 0;
-							fsp_packet_t fsp_pkt;
-
-							frame_decode_rs422((uint8_t *)receive_buffer, receive_index, &fsp_pkt);
-
-							frame_processing_rs422(&fsp_pkt);
-
-
-						}else{
-							receive_buffer[receive_index++] = rxData;
-						}
-
-						if (receive_index >= FSP_PKT_MAX_LENGTH) {
-							// Frame quá dài, reset lại
-
-							receiving = 0;
-						}
-					}
-			   }
-
-				Uart_flush(USART1);
-			//decode xiu?
-				switch_board(1);
-			//gio moi decode?
-				frame = pmu_frame;
-				frame_len = sizeof(pdu_frame);
-				for (int i = 0; i < frame_len; i++) {
-					Uart_write(USART1, frame[i]);
-				}
-				SCH_Delay(300);
-				receiving = 0;
-				receive_buffer[FSP_PKT_MAX_LENGTH];
-				receive_index = 0;
-				while (IsDataAvailable(USART1))
-				{
-					rxData = Uart_read(USART1);
-
-					if (!receiving) {
-						if (rxData == FSP_PKT_SOD) {
-							receiving = 1;
-							receive_index = 0;
-						}
-					} else {
-
-						if (rxData == FSP_PKT_EOF) {
-							receiving = 0;
-							fsp_packet_t fsp_pkt;
-							//set lệnh, nếu là lệnh abc, xyz thì abcxyz từ từ đây in ra cái gì gì
-							frame_decode_rs422((uint8_t *)receive_buffer, receive_index, &fsp_pkt);
-
-							frame_processing_rs422(&fsp_pkt);
-
-
-							}
-
-						else{
-							receive_buffer[receive_index++] = rxData;
-						}
-
-						if (receive_index >= FSP_PKT_MAX_LENGTH) {
-							// Frame quá dài, reset lại
-
-							receiving = 0;
-						}
-					}
-			   }
-
-				Uart_flush(USART1);
-
-				switch_board(3);
-				//gio moi de code
-				frame = iou_frame;
-				frame_len = sizeof(pdu_frame);
-				for (int i = 0; i < frame_len; i++) {
-					Uart_write(USART1, frame[i]);
-				}
-				SCH_Delay(300);
-				receiving = 0;
-				receive_buffer[FSP_PKT_MAX_LENGTH];
-				receive_index = 0;
-				while (IsDataAvailable(USART1))
-				{
-					rxData = Uart_read(USART1);
-
-					if (!receiving) {
-						if (rxData == FSP_PKT_SOD) {
-							receiving = 1;
-							receive_index = 0;
-						}
-					} else {
-
-						if (rxData == FSP_PKT_EOF) {
-							receiving = 0;
-							fsp_packet_t fsp_pkt;
-							//set lệnh, nếu là lệnh abc, xyz thì abcxyz từ từ đây in ra cái gì gì
-							frame_decode_rs422((uint8_t *)receive_buffer, receive_index, &fsp_pkt);
-
-							frame_processing_rs422(&fsp_pkt);
-
-
-
-						}else{
-							receive_buffer[receive_index++] = rxData;
-						}
-
-						if (receive_index >= FSP_PKT_MAX_LENGTH) {
-							// Frame quá dài, reset lại
-
-							receiving = 0;
-						}
-					}
-			   }
-				Uart_flush(USART1);
-				SCH_TIM_Start(SCH_TIM_RS422, RS422_PERIOD);	//restart
-			}
-
-		}else{
-
+			memcpy(destArray, sourceArray, sizeof(sourceArray));
+			SCH_TIM_Start(SCH_TIM_RS422, RS422_PERIOD);
 		}
+        for (int i = 0; i < sizeof(destArray); i++) {
+            Uart_write(UART5, destArray[i]);
+        }
 	}
 }
 
@@ -270,125 +102,140 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 	{
 		case 0x08:
 	    {
-	    	Uart_sendstring(UART5, "\nPMU:\n");
-	    	int16_t ntc0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
-	    	int16_t ntc1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
-	    	int16_t ntc2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
-	    	int16_t ntc3 = (int16_t)((fsp_pkt->payload[7] << 8) | fsp_pkt->payload[8]);
+			if(!rs422_report_ena){
+				Uart_sendstring(UART5, "\nPMU:\n");
+				int16_t ntc0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
+				int16_t ntc1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
+				int16_t ntc2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
+				int16_t ntc3 = (int16_t)((fsp_pkt->payload[7] << 8) | fsp_pkt->payload[8]);
 
-	    	uint16_t bat0 = (uint16_t)((fsp_pkt->payload[9] << 8) | fsp_pkt->payload[10]);
-	    	uint16_t bat1 = (uint16_t)((fsp_pkt->payload[11] << 8) | fsp_pkt->payload[12]);
-	    	uint16_t bat2 = (uint16_t)((fsp_pkt->payload[13] << 8) | fsp_pkt->payload[14]);
-	    	uint16_t bat3 = (uint16_t)((fsp_pkt->payload[15] << 8) | fsp_pkt->payload[16]);
+				uint16_t bat0 = (uint16_t)((fsp_pkt->payload[9] << 8) | fsp_pkt->payload[10]);
+				uint16_t bat1 = (uint16_t)((fsp_pkt->payload[11] << 8) | fsp_pkt->payload[12]);
+				uint16_t bat2 = (uint16_t)((fsp_pkt->payload[13] << 8) | fsp_pkt->payload[14]);
+				uint16_t bat3 = (uint16_t)((fsp_pkt->payload[15] << 8) | fsp_pkt->payload[16]);
 
-	    	uint16_t vin = (uint16_t)((fsp_pkt->payload[17] << 8) | fsp_pkt->payload[18]);
-	    	uint16_t iin = (uint16_t)((fsp_pkt->payload[19] << 8) | fsp_pkt->payload[20]);
+				uint16_t vin = (uint16_t)((fsp_pkt->payload[17] << 8) | fsp_pkt->payload[18]);
+				uint16_t iin = (uint16_t)((fsp_pkt->payload[19] << 8) | fsp_pkt->payload[20]);
 
-	    	uint16_t vout = (uint16_t)((fsp_pkt->payload[21] << 8) | fsp_pkt->payload[22]);
-	    	uint16_t iout = (uint16_t)((fsp_pkt->payload[23] << 8) | fsp_pkt->payload[24]);
+				uint16_t vout = (uint16_t)((fsp_pkt->payload[21] << 8) | fsp_pkt->payload[22]);
+				uint16_t iout = (uint16_t)((fsp_pkt->payload[23] << 8) | fsp_pkt->payload[24]);
 
-	    	char buffer_0x08[500];
-	    	sprintf(buffer_0x08, "PMU_Res: CMDcode 0x08 [\nNTC0: %s%d.%02d, \nNTC1: %s%d.%02d, \nNTC2: %s%d.%02d, \nNTC3: %s%d.%02d, \nBAT0: %d.%02d V, \nBAT1: %d.%02d V, \nBAT2: %d.%02d V, \nBAT3: %d.%02d V, \nVIN: %d.%02d V, \nIIN: %d.%02d A, \nVOUT: %d.%02d V, \nIOUT: %d.%02d A]\n",
-	    	        ntc0 < 0 ? "-" : "", abs(ntc0) / 100, abs(ntc0) % 100,
-	    	        ntc1 < 0 ? "-" : "", abs(ntc1) / 100, abs(ntc1) % 100,
-	    	        ntc2 < 0 ? "-" : "", abs(ntc2) / 100, abs(ntc2) % 100,
-	    	        ntc3 < 0 ? "-" : "", abs(ntc3) / 100, abs(ntc3) % 100,
-	    	        bat0 / 100, bat0 % 100, bat1 / 100, bat1 % 100,
-	    	        bat2 / 100, bat2 % 100, bat3 / 100, bat3 % 100,
-	    	        vin / 100, vin % 100, iin / 100, iin % 100,
-	    	        vout / 100, vout % 100, iout / 100, iout % 100);
-	    	Uart_sendstring(UART5, buffer_0x08);
+				char buffer_0x08[500];
+				sprintf(buffer_0x08, "PMU_Res: CMDcode 0x08 [\nNTC0: %s%d.%02d, \nNTC1: %s%d.%02d, \nNTC2: %s%d.%02d, \nNTC3: %s%d.%02d, \nBAT0: %d.%02d V, \nBAT1: %d.%02d V, \nBAT2: %d.%02d V, \nBAT3: %d.%02d V, \nVIN: %d.%02d V, \nIIN: %d.%02d A, \nVOUT: %d.%02d V, \nIOUT: %d.%02d A]\n",
+						ntc0 < 0 ? "-" : "", abs(ntc0) / 100, abs(ntc0) % 100,
+						ntc1 < 0 ? "-" : "", abs(ntc1) / 100, abs(ntc1) % 100,
+						ntc2 < 0 ? "-" : "", abs(ntc2) / 100, abs(ntc2) % 100,
+						ntc3 < 0 ? "-" : "", abs(ntc3) / 100, abs(ntc3) % 100,
+						bat0 / 100, bat0 % 100, bat1 / 100, bat1 % 100,
+						bat2 / 100, bat2 % 100, bat3 / 100, bat3 % 100,
+						vin / 100, vin % 100, iin / 100, iin % 100,
+						vout / 100, vout % 100, iout / 100, iout % 100);
+				Uart_sendstring(UART5, buffer_0x08);
+			}
+			receive_pmuFlag = 1;
+
+			for (int i = 1; i <= 24; i++) {
+			    sourceArray[i + 96] = fsp_pkt->payload[i]; //97   pay1    + 98 pay2    120    pay24
+			}
+
 	    }
 	    break;
 
 		case 0x06:
 		{
+			if(!rs422_report_ena){
+				Uart_sendstring(UART5, "\nPDU:\n");
+				uint8_t tec1buck_status = fsp_pkt->payload[1];
+				uint16_t tec1buck_voltage = (fsp_pkt->payload[2] << 8) | fsp_pkt->payload[3];
 
-			Uart_sendstring(UART5, "\nPDU:\n");
-			uint8_t tec1buck_status = fsp_pkt->payload[1];
-			uint16_t tec1buck_voltage = (fsp_pkt->payload[2] << 8) | fsp_pkt->payload[3];
+				uint8_t tec2buck_status = fsp_pkt->payload[4];
+				uint16_t tec2buck_voltage = (fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6];
 
-			uint8_t tec2buck_status = fsp_pkt->payload[4];
-			uint16_t tec2buck_voltage = (fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6];
+				uint8_t tec3buck_status = fsp_pkt->payload[7];
+				uint16_t tec3buck_voltage = (fsp_pkt->payload[8] << 8) | fsp_pkt->payload[9];
 
-			uint8_t tec3buck_status = fsp_pkt->payload[7];
-			uint16_t tec3buck_voltage = (fsp_pkt->payload[8] << 8) | fsp_pkt->payload[9];
+				uint8_t tec4buck_status = fsp_pkt->payload[10];
+				uint16_t tec4buck_voltage = (fsp_pkt->payload[11] << 8) | fsp_pkt->payload[12];
 
-			uint8_t tec4buck_status = fsp_pkt->payload[10];
-			uint16_t tec4buck_voltage = (fsp_pkt->payload[11] << 8) | fsp_pkt->payload[12];
+				uint8_t mcubuck_status = fsp_pkt->payload[13];
+				uint16_t mcubuck_voltage = (fsp_pkt->payload[14] << 8) | fsp_pkt->payload[15];
 
-			uint8_t mcubuck_status = fsp_pkt->payload[13];
-			uint16_t mcubuck_voltage = (fsp_pkt->payload[14] << 8) | fsp_pkt->payload[15];
+				uint8_t ledbuck_status = fsp_pkt->payload[16];
+				uint16_t ledbuck_voltage = (fsp_pkt->payload[17] << 8) | fsp_pkt->payload[18];
 
-			uint8_t ledbuck_status = fsp_pkt->payload[16];
-			uint16_t ledbuck_voltage = (fsp_pkt->payload[17] << 8) | fsp_pkt->payload[18];
+				uint8_t cm4buck_status = fsp_pkt->payload[19];
+				uint16_t cm4buck_voltage = (fsp_pkt->payload[20] << 8) | fsp_pkt->payload[21];
 
-			uint8_t cm4buck_status = fsp_pkt->payload[19];
-			uint16_t cm4buck_voltage = (fsp_pkt->payload[20] << 8) | fsp_pkt->payload[21];
+				uint8_t tec1_status = fsp_pkt->payload[22];
+				uint16_t tec1_current = (fsp_pkt->payload[23] << 8) | fsp_pkt->payload[24];
 
-			uint8_t tec1_status = fsp_pkt->payload[22];
-			uint16_t tec1_current = (fsp_pkt->payload[23] << 8) | fsp_pkt->payload[24];
+				uint8_t tec2_status = fsp_pkt->payload[25];
+				uint16_t tec2_current = (fsp_pkt->payload[26] << 8) | fsp_pkt->payload[27];
 
-			uint8_t tec2_status = fsp_pkt->payload[25];
-			uint16_t tec2_current = (fsp_pkt->payload[26] << 8) | fsp_pkt->payload[27];
+				uint8_t tec3_status = fsp_pkt->payload[28];
+				uint16_t tec3_current = (fsp_pkt->payload[29] << 8) | fsp_pkt->payload[30];
 
-			uint8_t tec3_status = fsp_pkt->payload[28];
-			uint16_t tec3_current = (fsp_pkt->payload[29] << 8) | fsp_pkt->payload[30];
+				uint8_t tec4_status = fsp_pkt->payload[31];
+				uint16_t tec4_current = (fsp_pkt->payload[32] << 8) | fsp_pkt->payload[33];
 
-			uint8_t tec4_status = fsp_pkt->payload[31];
-			uint16_t tec4_current = (fsp_pkt->payload[32] << 8) | fsp_pkt->payload[33];
+				uint8_t copc_status = fsp_pkt->payload[34];
+				uint16_t copc_current = (fsp_pkt->payload[35] << 8) | fsp_pkt->payload[36];
 
-			uint8_t copc_status = fsp_pkt->payload[34];
-			uint16_t copc_current = (fsp_pkt->payload[35] << 8) | fsp_pkt->payload[36];
+				uint8_t iou_status = fsp_pkt->payload[37];
+				uint16_t iou_current = (fsp_pkt->payload[38] << 8) | fsp_pkt->payload[39];
 
-			uint8_t iou_status = fsp_pkt->payload[37];
-			uint16_t iou_current = (fsp_pkt->payload[38] << 8) | fsp_pkt->payload[39];
+				uint8_t rgb_status = fsp_pkt->payload[40];
+				uint16_t rgb_current = (fsp_pkt->payload[41] << 8) | fsp_pkt->payload[42];
 
-			uint8_t rgb_status = fsp_pkt->payload[40];
-			uint16_t rgb_current = (fsp_pkt->payload[41] << 8) | fsp_pkt->payload[42];
+				uint8_t ir_status = fsp_pkt->payload[43];
+				uint16_t ir_current = (fsp_pkt->payload[44] << 8) | fsp_pkt->payload[45];
 
-			uint8_t ir_status = fsp_pkt->payload[43];
-			uint16_t ir_current = (fsp_pkt->payload[44] << 8) | fsp_pkt->payload[45];
+				uint8_t cm4_status = fsp_pkt->payload[46];
+				uint16_t cm4_current = (fsp_pkt->payload[47] << 8) | fsp_pkt->payload[48];
 
-			uint8_t cm4_status = fsp_pkt->payload[46];
-			uint16_t cm4_current = (fsp_pkt->payload[47] << 8) | fsp_pkt->payload[48];
+				uint8_t vin_status = fsp_pkt->payload[49];
+				uint16_t vin_voltage = (fsp_pkt->payload[50] << 8) | fsp_pkt->payload[51];
 
-			uint8_t vin_status = fsp_pkt->payload[49];
-			uint16_t vin_voltage = (fsp_pkt->payload[50] << 8) | fsp_pkt->payload[51];
-
-			uint8_t vbus_status = fsp_pkt->payload[52];
-			uint16_t vbus_voltage = (fsp_pkt->payload[53] << 8) | fsp_pkt->payload[54];
+				uint8_t vbus_status = fsp_pkt->payload[52];
+				uint16_t vbus_voltage = (fsp_pkt->payload[53] << 8) | fsp_pkt->payload[54];
 
 
-		            char buffer_0x06[1000];
-		            sprintf(buffer_0x06, "PDU_Res: CMDcode 0x06 [TEC1BUCK: Status %u, Voltage: %u\r\nTEC2BUCK: Status %u, Voltage: %u\r\nTEC3BUCK: Status %u, Voltage: %u\r\nTEC4BUCK: Status %u, Voltage: %u\r\nMCUBUCK: Status %u, Voltage: %u\r\nLEDBUCK: Status %u, Voltage: %u\r\nCM4BUCK: Status %u, Voltage: %u\r\nTEC1: Status %u, Current: %u\r\nTEC2: Status %u, Current: %u\r\nTEC3: Status %u, Current: %u\r\nTEC4: Status %u, Current: %u\r\nCOPC: Status %u, Current: %u\r\nIOU: Status %u, Current: %u\r\nRGB: Status %u, Current: %u\r\nIR: Status %u, Current: %u\r\nCM4: Status %u, Current: %u\r\nVIN: Status %u, Voltage: %u\r\nVBUS: Status %u, Voltage: %u\r\n]",
-		                tec1buck_status, tec1buck_voltage,
-		                tec2buck_status, tec2buck_voltage,
-		                tec3buck_status, tec3buck_voltage,
-		                tec4buck_status, tec4buck_voltage,
-		                mcubuck_status, mcubuck_voltage,
-		                ledbuck_status, ledbuck_voltage,
-		                cm4buck_status, cm4buck_voltage,
-		                tec1_status, tec1_current,
-		                tec2_status, tec2_current,
-		                tec3_status, tec3_current,
-		                tec4_status, tec4_current,
-		                copc_status, copc_current,
-		                iou_status, iou_current,
-		                rgb_status, rgb_current,
-		                ir_status, ir_current,
-		                cm4_status, cm4_current,
-		                vin_status, vin_voltage,
-		                vbus_status, vbus_voltage);
+						char buffer_0x06[1000];
+						sprintf(buffer_0x06, "PDU_Res: CMDcode 0x06 [TEC1BUCK: Status %u, Voltage: %u\r\nTEC2BUCK: Status %u, Voltage: %u\r\nTEC3BUCK: Status %u, Voltage: %u\r\nTEC4BUCK: Status %u, Voltage: %u\r\nMCUBUCK: Status %u, Voltage: %u\r\nLEDBUCK: Status %u, Voltage: %u\r\nCM4BUCK: Status %u, Voltage: %u\r\nTEC1: Status %u, Current: %u\r\nTEC2: Status %u, Current: %u\r\nTEC3: Status %u, Current: %u\r\nTEC4: Status %u, Current: %u\r\nCOPC: Status %u, Current: %u\r\nIOU: Status %u, Current: %u\r\nRGB: Status %u, Current: %u\r\nIR: Status %u, Current: %u\r\nCM4: Status %u, Current: %u\r\nVIN: Status %u, Voltage: %u\r\nVBUS: Status %u, Voltage: %u\r\n]",
+							tec1buck_status, tec1buck_voltage,
+							tec2buck_status, tec2buck_voltage,
+							tec3buck_status, tec3buck_voltage,
+							tec4buck_status, tec4buck_voltage,
+							mcubuck_status, mcubuck_voltage,
+							ledbuck_status, ledbuck_voltage,
+							cm4buck_status, cm4buck_voltage,
+							tec1_status, tec1_current,
+							tec2_status, tec2_current,
+							tec3_status, tec3_current,
+							tec4_status, tec4_current,
+							copc_status, copc_current,
+							iou_status, iou_current,
+							rgb_status, rgb_current,
+							ir_status, ir_current,
+							cm4_status, cm4_current,
+							vin_status, vin_voltage,
+							vbus_status, vbus_voltage);
 
-		            Uart_sendstring(UART5, buffer_0x06);
+						Uart_sendstring(UART5, buffer_0x06);
+			}
 
+					receive_pduFlag = 1;
+
+					for (int i = 1; i <= 54; i++) {
+					    sourceArray[i + 42] = fsp_pkt->payload[i]; //43   pay1    + 44  pay2        96-<54
+					}
 		}
 		break;
 
 
 		case 0x13:
 		{
+			if(!rs422_report_ena){
 			Uart_sendstring(UART5, "\nIOU:\n");
 			int16_t temp_ntc_channel0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
 			int16_t temp_ntc_channel1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
@@ -444,6 +291,13 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 			        ir_led_duty);
 
 			Uart_sendstring(UART5, buffer_0x13);
+			}
+			receive_iouFlag = 1;
+
+
+			for (int i = 1; i <= 35; i++) {
+					    sourceArray[i + 7] = fsp_pkt->payload[i]; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
+			}
 
 
 
@@ -452,7 +306,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 
 		default:
-			Uart_sendstring(UART5, "Failed to get all");
+			Uart_sendstring(USART6, "Failed to get all");
 			break;
 	}
 

@@ -15,13 +15,89 @@
 #include "main.h"
 #include "../ACK_packet/ACKsend_packet.h"
 #include "../global_vars.h"
+#include "../rs422.h"
+#define PMU_PERIOD 1000
+uint8_t pmu_frame[] = {0xCA, 0x01, 0x02, 0x01, 0x04, 0x08, 0x3D, 0xC5, 0xEF};
+static void PMU_update_task(void);
+
+
+typedef struct PMU_TaskContextTypedef
+{
+	SCH_TASK_HANDLE               taskHandle;
+	SCH_TaskPropertyTypedef       taskProperty;
+} PMU_TaskContextTypedef;
+
+
+static PMU_TaskContextTypedef           PMU_task_context =
+{
+	SCH_INVALID_TASK_HANDLE,                 // Will be updated by Schedular
+	{
+		SCH_TASK_SYNC,                      // taskType;
+		SCH_TASK_PRIO_0,                    // taskPriority;
+		100,                                // taskPeriodInMS;
+		PMU_update_task					// taskFunction;
+	}
+};
+
+
+
+void PMU_create_task(void)
+{
+    SCH_TASK_CreateTask(&PMU_task_context.taskHandle, &PMU_task_context.taskProperty);
+    SCH_TIM_Start(SCH_TIM_PMU, PMU_PERIOD);
+    Ringbuf_init();
+}
+
+
+
+
+
+
+void PMU_update_task(void) {
+	if (auto_report_enabled) {
+
+//	if  not in send and wait
+
+		uint8_t *frame;
+		uint8_t frame_len;
+		if (SCH_TIM_HasCompleted(SCH_TIM_PMU))
+		{
+
+			if(!sendFlag){
+				if(!send_rs422){
+					if(receive_iouFlag&&receive_pduFlag){
+						switch_board(1);
+						Uart_flush(USART1);
+
+						frame = pmu_frame;
+						frame_len = sizeof(pmu_frame);
+						for (int i = 0; i < frame_len; i++) {
+							Uart_write(USART1, frame[i]);
+						}
+						receive_pmuFlag = 0;
+						send_rs422 = 1;
+						SCH_TIM_Start(SCH_TIM_PMU, PMU_PERIOD);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+void	pmu_create_task(void)
+{
+	SCH_TASK_CreateTask(&PMU_task_context.taskHandle, &PMU_task_context.taskProperty);
+	Ringbuf_init();
+}
+
 
 #define DEST_ADDR FSP_ADR_PMU
-
+//volatile uint8_t uart_choose_uart5 = 0;
 int Cmd_pmu_get_temp(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
 
     // BA
     /*
@@ -32,7 +108,12 @@ int Cmd_pmu_get_temp(int argc, char *argv[])
      */
     LL_GPIO_ResetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_PMU_GET_TEMP;
     fsp_packet_t fsp_pkt;
 
@@ -61,8 +142,8 @@ int Cmd_pmu_get_temp(int argc, char *argv[])
 
 int Cmd_pmu_bat_vol(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
     // BA
     /*
 :  --> 00   -> PDU
@@ -72,7 +153,12 @@ int Cmd_pmu_bat_vol(int argc, char *argv[])
      */
     LL_GPIO_ResetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_BAT_VOL;
     fsp_packet_t fsp_pkt;
 
@@ -102,8 +188,8 @@ int Cmd_pmu_bat_vol(int argc, char *argv[])
 
 int Cmd_pmu_parag_in(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
 
     // BA
     /*
@@ -114,7 +200,12 @@ int Cmd_pmu_parag_in(int argc, char *argv[])
      */
     LL_GPIO_ResetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_PARAG_IN;
     fsp_packet_t fsp_pkt;
 
@@ -144,8 +235,8 @@ int Cmd_pmu_parag_in(int argc, char *argv[])
 
 int Cmd_pmu_parag_out(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
     // BA
     /*
 :  --> 00   -> PDU
@@ -155,7 +246,12 @@ int Cmd_pmu_parag_out(int argc, char *argv[])
      */
     LL_GPIO_ResetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_PARAG_OUT;
     fsp_packet_t fsp_pkt;
 
@@ -185,8 +281,8 @@ int Cmd_pmu_parag_out(int argc, char *argv[])
 
 int Cmd_pmu_set_temppoint(int argc, char *argv[])
 {
-    if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 3) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 3) return CMDLINE_TOO_MANY_ARGS;
     uint16_t lowpoint = atoi(argv[1]);
    // if (lowpoint > 6)   return CMDLINE_INVALID_ARG;
     uint16_t highpoint = atoi(argv[2]);
@@ -201,7 +297,12 @@ int Cmd_pmu_set_temppoint(int argc, char *argv[])
      */
     LL_GPIO_ResetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_PMU_TEMP_POINT;
 
     uint8_t payload[4];
@@ -237,8 +338,8 @@ int Cmd_pmu_set_temppoint(int argc, char *argv[])
 
 int Cmd_pmu_set_output(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t state = atoi(argv[1]);
     if (state > 1)   return CMDLINE_INVALID_ARG;
     // BA
@@ -250,7 +351,12 @@ int Cmd_pmu_set_output(int argc, char *argv[])
      */
     LL_GPIO_ResetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
 
     uint8_t cmd  = CMD_CODE_PMU_OUTPUT;
 
@@ -286,8 +392,8 @@ int Cmd_pmu_set_output(int argc, char *argv[])
 
 int Cmd_pmu_set_pwm(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t duty = atoi(argv[1]);
     if (duty > 100)   return CMDLINE_INVALID_ARG;
     // BA
@@ -299,7 +405,12 @@ int Cmd_pmu_set_pwm(int argc, char *argv[])
      */
     LL_GPIO_ResetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_PMU_PWM;
 
     uint8_t payload[4];
@@ -334,8 +445,8 @@ int Cmd_pmu_set_pwm(int argc, char *argv[])
 
 int Cmd_pmu_get_all(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
     // BA
     /*
 :  --> 00   -> PDU
@@ -345,7 +456,12 @@ int Cmd_pmu_get_all(int argc, char *argv[])
      */
     LL_GPIO_ResetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_PMU_ALL;
     fsp_packet_t fsp_pkt;
 

@@ -15,6 +15,7 @@
 #include "main.h"
 #include "../ACK_packet/ACKsend_packet.h"
 #include "../global_vars.h"
+#include "../rs422.h"
 //*****************************************************************************
 //
 // Function: set_temp
@@ -153,6 +154,84 @@
 //*****************************************************************************
 #define DEST_ADDR FSP_ADR_IOU
 
+uint8_t iou_frame[] = {0xCA, 0x01, 0x05, 0x01, 0x04, 0x13, 0xCF, 0xB2, 0xEF};
+
+#define IOU_PERIOD 1000
+
+static void IOU_update_task(void);
+
+
+typedef struct IOU_TaskContextTypedef
+{
+	SCH_TASK_HANDLE               taskHandle;
+	SCH_TaskPropertyTypedef       taskProperty;
+} IOU_TaskContextTypedef;
+
+
+static IOU_TaskContextTypedef           IOU_task_context =
+{
+	SCH_INVALID_TASK_HANDLE,                 // Will be updated by Schedular
+	{
+		SCH_TASK_SYNC,                      // taskType;
+		SCH_TASK_PRIO_0,                    // taskPriority;
+		100,                                // taskPeriodInMS;
+		IOU_update_task					// taskFunction;
+	}
+};
+
+
+
+void IOU_create_task(void)
+{
+    SCH_TASK_CreateTask(&IOU_task_context.taskHandle, &IOU_task_context.taskProperty);
+    SCH_TIM_Start(SCH_TIM_IOU, IOU_PERIOD);
+    Ringbuf_init();
+}
+
+volatile uint8_t receive_pduFlag = 1;
+volatile uint8_t receive_pmuFlag = 1;
+volatile uint8_t receive_iouFlag = 1;
+volatile uint8_t send_rs422 = 0;
+
+
+void IOU_update_task(void) {
+	if (auto_report_enabled) {
+
+//	if  not in send and wait
+
+		uint8_t *frame;
+		uint8_t frame_len;
+		if (SCH_TIM_HasCompleted(SCH_TIM_IOU))
+		{
+
+			if(!sendFlag){
+				if(!send_rs422){
+					if(receive_pduFlag&&receive_pmuFlag){
+						switch_board(0);
+						Uart_flush(USART1);
+
+						frame = iou_frame;
+						frame_len = sizeof(iou_frame);
+						for (int i = 0; i < frame_len; i++) {
+							Uart_write(USART1, frame[i]);
+						}
+						receive_iouFlag = 0;
+						send_rs422 = 1;
+						SCH_TIM_Start(SCH_TIM_IOU, IOU_PERIOD);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+void	iou_create_task(void)
+{
+	SCH_TASK_CreateTask(&IOU_task_context.taskHandle, &IOU_task_context.taskProperty);
+	Ringbuf_init();
+}
+
 
 //int TEST(int argc, char *argv[])
 //{
@@ -206,10 +285,14 @@
 //    return CMDLINE_PENDING;
 //}
 
+volatile uint8_t uart_choose_uart5 = 0;
+
 int Cmd_iou_set_temp(int argc, char *argv[])
 {
-    if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
+
+
+    if ((argc-1) < 3) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 3) return CMDLINE_TOO_MANY_ARGS;
 
     uint8_t channel = atoi(argv[1]);
     if (channel > 3)    return CMDLINE_INVALID_ARG;
@@ -227,7 +310,12 @@ int Cmd_iou_set_temp(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
 
     // Create the command payload
     uint8_t cmd  = CMD_CODE_SET_TEMP;
@@ -246,6 +334,7 @@ int Cmd_iou_set_temp(int argc, char *argv[])
     if (frame_len > 0) {
         for (int i = 0; i < frame_len; i++) {
             Uart_write(USART1, encoded_frame[i]);
+
         }
         set_fsp_packet(encoded_frame, frame_len);
         set_send_flag();
@@ -272,8 +361,8 @@ int Cmd_iou_set_temp(int argc, char *argv[])
 
 int Cmd_iou_get_temp(int argc, char *argv[])
 {
-    if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 3) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 3) return CMDLINE_TOO_MANY_ARGS;
 
 
     uint8_t sensor = atoi(argv[1]);
@@ -291,7 +380,12 @@ int Cmd_iou_get_temp(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_GET_TEMP;
     uint8_t payload[2];
 
@@ -325,8 +419,8 @@ int Cmd_iou_get_temp(int argc, char *argv[])
 
 int Cmd_iou_temp_setpoint(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
     if (channel > 3)    return CMDLINE_INVALID_ARG;
 
@@ -339,7 +433,12 @@ int Cmd_iou_temp_setpoint(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEMP_SETPOINT;
     uint8_t payload[1];
     payload[0] = channel;
@@ -370,8 +469,8 @@ int Cmd_iou_temp_setpoint(int argc, char *argv[])
 
 int Cmd_iou_tec_ena(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
     if (channel > 3)    return CMDLINE_INVALID_ARG;
     // BA
@@ -383,7 +482,12 @@ int Cmd_iou_tec_ena(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEC_ENA;
     uint8_t payload[1];
     payload[0] = channel;
@@ -415,8 +519,8 @@ int Cmd_iou_tec_ena(int argc, char *argv[])
 
 int Cmd_iou_tec_dis(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
     if (channel > 3)    return CMDLINE_INVALID_ARG;
 
@@ -429,7 +533,12 @@ int Cmd_iou_tec_dis(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
 
     uint8_t cmd  = CMD_CODE_TEC_DIS;
     uint8_t payload[1];
@@ -462,8 +571,8 @@ int Cmd_iou_tec_dis(int argc, char *argv[])
 
 int Cmd_iou_tec_ena_auto(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
     if (channel > 3)    return CMDLINE_INVALID_ARG;
 
@@ -476,7 +585,12 @@ int Cmd_iou_tec_ena_auto(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEC_ENA_AUTO;
     uint8_t payload[1];
     payload[0] = channel;
@@ -507,8 +621,8 @@ int Cmd_iou_tec_ena_auto(int argc, char *argv[])
 
 int Cmd_iou_tec_dis_auto(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
     if (channel > 3)    return CMDLINE_INVALID_ARG;
     // BA
@@ -520,7 +634,12 @@ int Cmd_iou_tec_dis_auto(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEC_DIS_AUTO;
     uint8_t payload[1];
     payload[0] = channel;
@@ -552,8 +671,8 @@ int Cmd_iou_tec_dis_auto(int argc, char *argv[])
 
 int Cmd_iou_tec_set_output(int argc, char *argv[])
 {
-    if (argc < 4) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 4) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 4) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 4) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
     if (channel > 3)    return CMDLINE_INVALID_ARG;
 
@@ -572,7 +691,12 @@ int Cmd_iou_tec_set_output(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEC_SET_OUTPUT;
     uint8_t payload[4];
     payload[0] = channel;
@@ -606,8 +730,8 @@ int Cmd_iou_tec_set_output(int argc, char *argv[])
 
 int Cmd_iou_tec_auto_vol(int argc, char *argv[])
 {
-    if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 3) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 3) return CMDLINE_TOO_MANY_ARGS;
     uint8_t channel = atoi(argv[1]);
     if (channel > 3)    return CMDLINE_INVALID_ARG;
 
@@ -623,7 +747,12 @@ int Cmd_iou_tec_auto_vol(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEC_AUTO_VOL;
     uint8_t payload[3];
     payload[0] = channel;
@@ -656,8 +785,8 @@ int Cmd_iou_tec_auto_vol(int argc, char *argv[])
 
 int Cmd_iou_tec_status(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
 
     // BA
     /*
@@ -668,7 +797,12 @@ int Cmd_iou_tec_status(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEC_STATUS;
     fsp_packet_t fsp_pkt;
 
@@ -697,8 +831,8 @@ int Cmd_iou_tec_status(int argc, char *argv[])
 
 int Cmd_iou_tec_log_ena(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
     // BA
     /*
 :  --> 00   -> PDU
@@ -708,7 +842,12 @@ int Cmd_iou_tec_log_ena(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEC_LOG_ENA;
     fsp_packet_t fsp_pkt;
 
@@ -738,8 +877,8 @@ int Cmd_iou_tec_log_ena(int argc, char *argv[])
 
 int Cmd_iou_tec_log_dis(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
     // BA
     /*
 :  --> 00   -> PDU
@@ -749,7 +888,12 @@ int Cmd_iou_tec_log_dis(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_TEC_LOG_DIS;
     fsp_packet_t fsp_pkt;
 
@@ -780,15 +924,15 @@ int Cmd_iou_tec_log_dis(int argc, char *argv[])
 
 int Cmd_iou_ringled_setRGB(int argc, char *argv[])
 {
-    if (argc < 5) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 5) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 5) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 5) return CMDLINE_TOO_MANY_ARGS;
     uint8_t red = atoi(argv[1]);
     if (red > 255)    return CMDLINE_INVALID_ARG;
     uint8_t green = atoi(argv[2]);
     if (green > 255)    return CMDLINE_INVALID_ARG;
     uint8_t blue = atoi(argv[3]);
     if (blue > 255)    return CMDLINE_INVALID_ARG;
-    uint8_t white = atoi(argv[3]);
+    uint8_t white = atoi(argv[4]);
     if (white > 255)    return CMDLINE_INVALID_ARG;
     // BA
     /*
@@ -799,7 +943,12 @@ int Cmd_iou_ringled_setRGB(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_RINGLED_SETRGB;
     uint8_t payload[4];
 
@@ -834,8 +983,8 @@ int Cmd_iou_ringled_setRGB(int argc, char *argv[])
 
 int Cmd_iou_ringled_getRGB(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
 
     // BA
     /*
@@ -846,7 +995,12 @@ int Cmd_iou_ringled_getRGB(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
 
     uint8_t cmd  = CMD_CODE_RINGLED_GETRGB;
 
@@ -876,8 +1030,8 @@ int Cmd_iou_ringled_getRGB(int argc, char *argv[])
 
 int Cmd_iou_irled_set_bright(int argc, char *argv[])
 {
-    if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
     uint8_t percent = atoi(argv[1]);
     if (percent > 100)    return CMDLINE_INVALID_ARG;
 
@@ -890,7 +1044,12 @@ int Cmd_iou_irled_set_bright(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_IRLED_SET_BRIGHT;
     uint8_t payload[1];
 
@@ -922,8 +1081,8 @@ int Cmd_iou_irled_set_bright(int argc, char *argv[])
 
 int Cmd_iou_irled_get_bright(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
     // BA
     /*
 :  --> 00   -> PDU
@@ -933,7 +1092,12 @@ int Cmd_iou_irled_get_bright(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_IRLED_GET_BRIGHT;
     fsp_packet_t fsp_pkt;
 
@@ -964,8 +1128,8 @@ int Cmd_iou_irled_get_bright(int argc, char *argv[])
 
 int Cmd_iou_get_accel(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
     // BA
     /*
 :  --> 00   -> PDU
@@ -975,7 +1139,12 @@ int Cmd_iou_get_accel(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_GET_ACCEL_GYRO;
     fsp_packet_t fsp_pkt;
 
@@ -1005,8 +1174,8 @@ int Cmd_iou_get_accel(int argc, char *argv[])
 
 int Cmd_iou_get_press(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
 
     // BA
     /*
@@ -1017,7 +1186,12 @@ int Cmd_iou_get_press(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_GET_PRESS;
     fsp_packet_t fsp_pkt;
 
@@ -1048,8 +1222,8 @@ int Cmd_iou_get_press(int argc, char *argv[])
 
 int Cmd_iou_get_parameters(int argc, char *argv[])
 {
-    if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
-    if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
 
     // BA
     /*
@@ -1060,7 +1234,12 @@ int Cmd_iou_get_parameters(int argc, char *argv[])
      */
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_B_Pin);
     LL_GPIO_SetOutputPin(GPIOA, BOARD_SEL_A_Pin);
-
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    if (USARTx == UART5) {
+    	uart_choose_uart5 = 1;
+    }else{
+    	uart_choose_uart5 = 0;
+    }
     uint8_t cmd  = CMD_CODE_GET_PARAMETERS;
     fsp_packet_t fsp_pkt;
 

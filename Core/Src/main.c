@@ -32,6 +32,11 @@
 #include "../../Core/CPOC/CPOC.h"
 #include "../CMDLine/global_vars.h"
 #include "../CMDLine/rs422.h"
+
+#include "../CMDLine/cmd_IOU/iou_cmd.h"
+#include "../CMDLine/cmd_PMU/PMU_cmd.h"
+#include "../CMDLine/cmd_PDU/PDU_cmd.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -146,7 +151,9 @@ int main(void)
 
   WDT_create_task();
 
-  rs422_create_task();
+  IOU_create_task();
+  PMU_create_task();
+  PDU_create_task();
 
   SCH_StartSchedular();
   /* USER CODE END 2 */

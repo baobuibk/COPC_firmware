@@ -27,6 +27,6 @@ int Cmd_pmu_set_temppoint(int argc, char *argv[]);
 int Cmd_pmu_set_output(int argc, char *argv[]);
 int Cmd_pmu_set_pwm(int argc, char *argv[]);
 int Cmd_pmu_get_all(int argc, char *argv[]);
-
+void PMU_create_task(void);
 
 #endif /* CMDLINE_CMD_PMU_PMU_CMD_H_ */

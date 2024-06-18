@@ -11,7 +11,9 @@ Core/CPOC/CPOC.o: ../Core/CPOC/CPOC.c \
  ../Drivers/CMSIS/Include/cmsis_gcc.h \
  ../Drivers/CMSIS/Include/mpu_armv7.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h \
- ../Core/CPOC/../../ThirdParty/libfsp/fsp.h
+ ../Core/CPOC/../../ThirdParty/libfsp/fsp.h \
+ ../Core/CPOC/../CMDLine/global_vars.h ../Core/CPOC/../CMDLine/rs422.h \
+ ../Core/CPOC/../CMDLine/../../ThirdParty/libfsp/fsp.h
 ../Core/CPOC/../../Scheduler/scheduler.h:
 ../Core/CPOC/../../Scheduler/../Core/Common/basetypedef.h:
 ../Core/CPOC/CPOC.h:
@@ -26,3 +28,6 @@ Core/CPOC/CPOC.o: ../Core/CPOC/CPOC.c \
 ../Drivers/CMSIS/Include/mpu_armv7.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h:
 ../Core/CPOC/../../ThirdParty/libfsp/fsp.h:
+../Core/CPOC/../CMDLine/global_vars.h:
+../Core/CPOC/../CMDLine/rs422.h:
+../Core/CPOC/../CMDLine/../../ThirdParty/libfsp/fsp.h:

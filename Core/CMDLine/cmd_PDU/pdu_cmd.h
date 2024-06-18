@@ -21,6 +21,6 @@ int Cmd_pdu_set_all(int argc, char *argv[]);
 int Cmd_pdu_get_channel(int argc, char *argv[]);
 int Cmd_pdu_get_buck(int argc, char *argv[]);
 int Cmd_pdu_get_all(int argc, char *argv[]);
-
+void PDU_create_task(void);
 
 #endif /* CMDLINE_CMD_PDU_PDU_CMD_H_ */
