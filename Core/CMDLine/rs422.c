@@ -19,8 +19,10 @@
 #include "../../Scheduler/scheduler.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../ThirdParty/libfsp/crc.h"
+#include "../../BSP/RTC/ds3231.h"
 
-
+#define RS422_PERIOD 1000
 
 static void RS422_periodic_task(void);
 
@@ -80,18 +82,58 @@ void switch_board(uint8_t board_id) {
 
 
 
-uint8_t sourceArray[282];
-uint8_t destArray[282];
+uint8_t sourceArray[1000];
+uint8_t destArray[1000];
 
-
+volatile uint8_t count_packet = 0;
 void RS422_periodic_task(void) {
-	if (rs422_report_enabled) {
+	if (rs422_report_enable) {
 		if (SCH_TIM_HasCompleted(SCH_TIM_RS422))
 		{
+
+			sourceArray[0] = 0x02;
+			sourceArray[ARRAY_SIZE - 1] = 0x03;
+
+		    uint8_t day, date, month, year, hour, min, sec;
+		    DS3231_GetDateTime(&day, &date, &month, &year, &hour, &min, &sec);
+
+		    float temp;
+		    uint8_t rounded_temp;
+
+		    temp = DS3231_GetTemperature();
+		    rounded_temp = (uint8_t)temp;
+
+		    sourceArray[2] = sec;
+		    sourceArray[3] = min;
+		    sourceArray[4] = hour;
+		    sourceArray[5] = date;
+		    sourceArray[6] = month;
+		    sourceArray[7] = rounded_temp;
+
+
+			count_packet = 0;
+			for (int i = 121; i <= 146; i++) {
+			    sourceArray[i] = i - 121;
+			}
+
+
+			for (int i = 147; i <= ARRAY_SIZE-2; i++) {
+			    sourceArray[i] = i - 147;
+			}
+
+
+			uint16_t crc = crc16_CCITT(0xFFFF, &sourceArray[1], ARRAY_SIZE - 4);
+
+			sourceArray[ARRAY_SIZE - 3] = (crc >> 8) & 0xFF;  // CRC#HIGH
+			sourceArray[ARRAY_SIZE - 2] = crc & 0xFF;         // CRC#LOW
+
+
 			memcpy(destArray, sourceArray, sizeof(sourceArray));
 			SCH_TIM_Start(SCH_TIM_RS422, RS422_PERIOD);
 		}
-        for (int i = 0; i < sizeof(destArray); i++) {
+		sourceArray[1] = count_packet++;
+
+        for (int i = 0; i < ARRAY_SIZE; i++) {
             Uart_write(UART5, destArray[i]);
         }
 	}
@@ -102,7 +144,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 	{
 		case 0x08:
 	    {
-			if(!rs422_report_ena){
+			if(!rs422_report_enable){
 				Uart_sendstring(UART5, "\nPMU:\n");
 				int16_t ntc0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
 				int16_t ntc1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
@@ -137,13 +179,14 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 			for (int i = 1; i <= 24; i++) {
 			    sourceArray[i + 96] = fsp_pkt->payload[i]; //97   pay1    + 98 pay2    120    pay24
 			}
+			disconnect_counter_pmu = 0;
 
 	    }
 	    break;
 
 		case 0x06:
 		{
-			if(!rs422_report_ena){
+			if(!rs422_report_enable){
 				Uart_sendstring(UART5, "\nPDU:\n");
 				uint8_t tec1buck_status = fsp_pkt->payload[1];
 				uint16_t tec1buck_voltage = (fsp_pkt->payload[2] << 8) | fsp_pkt->payload[3];
@@ -229,13 +272,14 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 					for (int i = 1; i <= 54; i++) {
 					    sourceArray[i + 42] = fsp_pkt->payload[i]; //43   pay1    + 44  pay2        96-<54
 					}
+					disconnect_counter_pdu = 0;
 		}
 		break;
 
 
 		case 0x13:
 		{
-			if(!rs422_report_ena){
+			if(!rs422_report_enable){
 			Uart_sendstring(UART5, "\nIOU:\n");
 			int16_t temp_ntc_channel0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
 			int16_t temp_ntc_channel1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
@@ -299,7 +343,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 					    sourceArray[i + 7] = fsp_pkt->payload[i]; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
 			}
 
-
+			disconnect_counter_iou = 0;
 
 		}
 		break;

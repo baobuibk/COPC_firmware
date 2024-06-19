@@ -19,7 +19,7 @@
  *
  * \return Returns the crc16 value of the data.
  */
-uint16_t crc16_CCITT(uint16_t initial_value, uint8_t* data, uint8_t size);
+uint16_t crc16_CCITT(uint16_t initial_value, uint8_t* data, uint16_t size);
 
 
 #endif /* LIBFSP_CRC_H_ */

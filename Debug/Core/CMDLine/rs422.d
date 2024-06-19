@@ -22,7 +22,9 @@ Core/CMDLine/rs422.o: ../Core/CMDLine/rs422.c ../Core/CMDLine/rs422.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_dma.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h \
  ../Core/CMDLine/../../Scheduler/scheduler.h \
- ../Core/CMDLine/../../Scheduler/../Core/Common/basetypedef.h
+ ../Core/CMDLine/../../Scheduler/../Core/Common/basetypedef.h \
+ ../Core/CMDLine/../../ThirdParty/libfsp/crc.h \
+ ../Core/CMDLine/../../BSP/RTC/ds3231.h
 ../Core/CMDLine/rs422.h:
 ../Core/CMDLine/../../ThirdParty/libfsp/fsp.h:
 ../Core/CMDLine/../../BSP/UART/uart.h:
@@ -49,3 +51,5 @@ Core/CMDLine/rs422.o: ../Core/CMDLine/rs422.c ../Core/CMDLine/rs422.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:
 ../Core/CMDLine/../../Scheduler/scheduler.h:
 ../Core/CMDLine/../../Scheduler/../Core/Common/basetypedef.h:
+../Core/CMDLine/../../ThirdParty/libfsp/crc.h:
+../Core/CMDLine/../../BSP/RTC/ds3231.h:

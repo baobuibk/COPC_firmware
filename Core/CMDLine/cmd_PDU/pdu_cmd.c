@@ -50,6 +50,7 @@ void PDU_create_task(void)
 }
 
 
+volatile uint8_t timeout_counter_pdu = 0;
 
 void PDU_update_task(void) {
 	if (auto_report_enabled) {
@@ -75,6 +76,19 @@ void PDU_update_task(void) {
 						receive_pduFlag = 0;
 						send_rs422 = 1;
 						SCH_TIM_Start(SCH_TIM_PDU, PDU_PERIOD);
+					}
+					if(!receive_pduFlag){
+						timeout_counter_pdu++;
+						if (timeout_counter_pdu > 2){
+							disconnect_counter_pdu++;
+							timeout_counter_pdu = 0;
+							receive_pduFlag = 1;
+							if(disconnect_counter_pdu> 4){
+								for (int i = 1; i <= 54; i++) {
+									    sourceArray[i + 42] = 0xFF; //43   pay1    + 44  pay2        96-<54
+									}
+							}
+						}
 					}
 				}
 			}

@@ -51,7 +51,7 @@ void PMU_create_task(void)
 
 
 
-
+volatile uint8_t timeout_counter_pmu = 0;
 
 void PMU_update_task(void) {
 	if (auto_report_enabled) {
@@ -77,6 +77,19 @@ void PMU_update_task(void) {
 						receive_pmuFlag = 0;
 						send_rs422 = 1;
 						SCH_TIM_Start(SCH_TIM_PMU, PMU_PERIOD);
+					}
+					if(!receive_pmuFlag){
+						timeout_counter_pmu++;
+						if (timeout_counter_pmu > 2){
+							disconnect_counter_pmu++;
+							timeout_counter_pmu = 0;
+							receive_pmuFlag = 1;
+							if(disconnect_counter_pmu> 4){
+								for (int i = 1; i <= 24; i++) {
+									sourceArray[i + 96] = 0xFF; //97   pay1    + 98 pay2    120    pay24
+								}
+							}
+						}
 					}
 				}
 			}

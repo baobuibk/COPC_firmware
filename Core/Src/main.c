@@ -154,7 +154,7 @@ int main(void)
   IOU_create_task();
   PMU_create_task();
   PDU_create_task();
-
+  rs422_create_task();
   SCH_StartSchedular();
   /* USER CODE END 2 */
 

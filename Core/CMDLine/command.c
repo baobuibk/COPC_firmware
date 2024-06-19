@@ -47,7 +47,8 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"splash", Cmd_splash,": Splash screen again | format: splash" },
 								{"status_now", Cmd_status_now,": Display <Date&Time>, <Temp> *C, <HardwareVer>, <FirmwareVer>, <Enable>, <Mode> | format: status_now" },
 								{"auto_report_ena", Cmd_auto_report_ena,": Enable Autoreport time_s, default 3 , < 20sec| format: auto_report_ena <sec>" },
-								{"auto_report_dis", Cmd_auto_report_dis,": Disable Autoreport time_s | format: auto_report_dis" },
+								{"rs422_report_ena", Cmd_rs422_report_ena,": Disable Autoreport time_s | format: auto_report_dis" },
+								{"set_byte_rs422", Cmd_set_byte_rs422, ": Set Size of packet RS422, Default 282 (150<x<1000) | format: set_byte_rs422 <size>"},
 								{"memory_usage", Cmd_memory_usage, ": %RAM and %FLASH Used | format: memory_usage"},
 //CPOC
 								{"time_get", Cmd_time_get , ": Get RTC Time | format: time_get"},
@@ -211,7 +212,8 @@ void	command_init(void)
 
 }
 
-
+volatile uint8_t auto_report_enabled = 0;
+volatile uint8_t rs422_report_enable = 0;
 void process_command(USART_TypeDef* USARTx, char rxData);
 
 
@@ -239,6 +241,12 @@ static void command_task_update(void)
 void process_command(USART_TypeDef* USARTx, char rxData)
 {
     int8_t ret_val;
+    if (rxData == 27)  // ASCII code for ESC key
+    {
+    	auto_report_enabled = 0;
+        rs422_report_enable = 0;
+        return;
+    }
 
     if ((rxData == '\r') || (rxData == '\n'))
     {
@@ -546,8 +554,35 @@ int Cmd_status_now(int argc, char *argv[]){
 	return (CMDLINE_OK);
 }
 
-uint8_t auto_report_enabled = 0;
-uint32_t RS422_PERIOD = 3000;
+//volatile uint8_t auto_report_enabled = 0;
+//uint32_t RS422_PERIOD = 3000;
+
+uint16_t ARRAY_SIZE = 282;
+
+int Cmd_set_byte_rs422(int argc, char *argv[])
+{
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    uint16_t size = atoi(argv[1]);
+    if (size <= 0) {
+        Uart_sendstring(USARTx,"\nPositive integer!!!\n");
+        return CMDLINE_INVALID_ARG;
+    }
+
+    if ( size > 1000 || size < 150) {
+        Uart_sendstring(USARTx,"Array size > 150or < 1000.\n");
+        return CMDLINE_INVALID_ARG;
+    }
+
+    ARRAY_SIZE = size;
+
+    char msg[50];
+    sprintf(msg, "\nArray size set to %d bytes.\n", size);
+    Uart_sendstring(USARTx, msg);
+    return CMDLINE_OK;
+}
+
 
 
 int Cmd_auto_report_ena(int argc, char *argv[])
@@ -568,25 +603,31 @@ int Cmd_auto_report_ena(int argc, char *argv[])
     	}
 
     auto_report_enabled = 1;
-    RS422_PERIOD = sec * 1000; // Convert seconds to milliseconds
+ //   RS422_PERIOD = sec * 1000; // Convert seconds to milliseconds
 
     char msg[50];
-    sprintf(msg, "\nAuto report %d seconds.\n", sec);
+    sprintf(msg, "\nAuto report %d seconds, [ESC] to Stop\n", sec);
     Uart_sendstring(USARTx, msg);
     return CMDLINE_OK;
 }
 
 
-int Cmd_auto_report_dis(int argc, char *argv[])
+
+int Cmd_rs422_report_ena(int argc, char *argv[])
 {
     if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
     if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
-	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
-    auto_report_enabled = 0;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
 
-    Uart_sendstring(USARTx, "Auto report disabled.\n");
+    rs422_report_enable = 1;
+ // Convert seconds to milliseconds
+
+    char msg[50];
+    sprintf(msg, "\nAuto report RS422, [ESC] to Stop\n");
+    Uart_sendstring(USARTx, msg);
     return CMDLINE_OK;
 }
+
 
 int Cmd_memory_usage(int argc, char *argv[]) {
 	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];

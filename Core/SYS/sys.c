@@ -19,8 +19,8 @@ static FlagStatus                       s_AppEvents[eSYS_EVENT_MAX] =
 };
 
 /* Private functions ---------------------------------------------------------*/
-static void SYS_handle_EJECT(void);
-static void SYS_handle_INT_I2C(void);
+//static void SYS_handle_EJECT(void);
+//static void SYS_handle_INT_I2C(void);
 
 /* Public functions ----------------------------------------------------------*/
 /*******************************************************************************
@@ -57,19 +57,19 @@ void SYS_PostEvent(SYS_EventTypeDef event)
   * @retval None
   *****************************************************************************/
 
-static void	SYS_handle_events(void)
-{
-	const	t_tpAppEventHandler	ftpEventHandler[eSYS_EVENT_MAX] =
-	{
-		SYS_handle_EJECT,
-		SYS_handle_INT_I2C
-	};
-	SYS_EventTypeDef	eventIndex;
-	for(eventIndex = eSYS_EVENT_First;eventIndex < eSYS_EVENT_MAX;eventIndex++)
-	{
-		if (s_AppEvents[eventIndex] == SET)
-		{
-			ftpEventHandler[eventIndex]();
-		}
-	}
-}
+//static void	SYS_handle_events(void)
+//{
+//	const	t_tpAppEventHandler	ftpEventHandler[eSYS_EVENT_MAX] =
+//	{
+//		SYS_handle_EJECT,
+//		SYS_handle_INT_I2C
+//	};
+//	SYS_EventTypeDef	eventIndex;
+//	for(eventIndex = eSYS_EVENT_First;eventIndex < eSYS_EVENT_MAX;eventIndex++)
+//	{
+//		if (s_AppEvents[eventIndex] == SET)
+//		{
+//			ftpEventHandler[eventIndex]();
+//		}
+//	}
+//}

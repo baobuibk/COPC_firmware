@@ -191,7 +191,12 @@ void IOU_create_task(void)
 volatile uint8_t receive_pduFlag = 1;
 volatile uint8_t receive_pmuFlag = 1;
 volatile uint8_t receive_iouFlag = 1;
+volatile uint8_t disconnect_counter_iou;
+volatile uint8_t disconnect_counter_pdu;
+volatile uint8_t disconnect_counter_pmu;
 volatile uint8_t send_rs422 = 0;
+
+volatile uint8_t timeout_counter_iou = 0;
 
 
 void IOU_update_task(void) {
@@ -218,6 +223,19 @@ void IOU_update_task(void) {
 						receive_iouFlag = 0;
 						send_rs422 = 1;
 						SCH_TIM_Start(SCH_TIM_IOU, IOU_PERIOD);
+					}
+					if(!receive_iouFlag){
+						timeout_counter_iou++;
+						if (timeout_counter_iou > 2){
+							disconnect_counter_iou++;
+							timeout_counter_iou = 0;
+							receive_pmuFlag = 1;
+							if(disconnect_counter_iou> 4){
+								for (int i = 1; i <= 35; i++) {
+										    sourceArray[i + 7] = 0xFF; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
+								}
+							}
+						}
 					}
 				}
 			}
