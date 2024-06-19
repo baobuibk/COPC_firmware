@@ -112,6 +112,7 @@ void RS422_periodic_task(void) {
 
 
 			count_packet = 0;
+
 			for (int i = 121; i <= 146; i++) {
 			    sourceArray[i] = i - 121;
 			}
@@ -131,11 +132,13 @@ void RS422_periodic_task(void) {
 			memcpy(destArray, sourceArray, sizeof(sourceArray));
 			SCH_TIM_Start(SCH_TIM_RS422, RS422_PERIOD);
 		}
-		sourceArray[1] = count_packet++;
+		destArray[1] = count_packet;
 
         for (int i = 0; i < ARRAY_SIZE; i++) {
             Uart_write(UART5, destArray[i]);
         }
+
+        count_packet++;
 	}
 }
 
