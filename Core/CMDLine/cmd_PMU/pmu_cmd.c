@@ -54,7 +54,7 @@ void PMU_create_task(void)
 volatile uint8_t timeout_counter_pmu = 0;
 
 void PMU_update_task(void) {
-	if (auto_report_enabled) {
+	if (rs422_report_enable) {
 
 //	if  not in send and wait
 
@@ -98,11 +98,6 @@ void PMU_update_task(void) {
 }
 
 
-void	pmu_create_task(void)
-{
-	SCH_TASK_CreateTask(&PMU_task_context.taskHandle, &PMU_task_context.taskProperty);
-	Ringbuf_init();
-}
 
 
 #define DEST_ADDR FSP_ADR_PMU

@@ -147,8 +147,8 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 	{
 		case 0x08:
 	    {
-			if(!rs422_report_enable){
-				Uart_sendstring(UART5, "\nPMU:\n");
+			if(!auto_report_enabled){
+				Uart_sendstring(USART6, "\nPMU:\n");
 				int16_t ntc0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
 				int16_t ntc1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
 				int16_t ntc2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
@@ -175,13 +175,15 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 						bat2 / 100, bat2 % 100, bat3 / 100, bat3 % 100,
 						vin / 100, vin % 100, iin / 100, iin % 100,
 						vout / 100, vout % 100, iout / 100, iout % 100);
-				Uart_sendstring(UART5, buffer_0x08);
+				Uart_sendstring(USART6, buffer_0x08);
 			}
 			receive_pmuFlag = 1;
 
 			for (int i = 1; i <= 24; i++) {
 			    sourceArray[i + 96] = fsp_pkt->payload[i]; //97   pay1    + 98 pay2    120    pay24
 			}
+//			Uart_sendstring(USART6, "\nPMU_Collected\r\n");
+
 			disconnect_counter_pmu = 0;
 
 	    }
@@ -189,8 +191,8 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 		case 0x06:
 		{
-			if(!rs422_report_enable){
-				Uart_sendstring(UART5, "\nPDU:\n");
+			if(!auto_report_enabled){
+				Uart_sendstring(USART6, "\nPDU:\n");
 				uint8_t tec1buck_status = fsp_pkt->payload[1];
 				uint16_t tec1buck_voltage = (fsp_pkt->payload[2] << 8) | fsp_pkt->payload[3];
 
@@ -267,7 +269,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 							vin_status, vin_voltage,
 							vbus_status, vbus_voltage);
 
-						Uart_sendstring(UART5, buffer_0x06);
+						Uart_sendstring(USART6, buffer_0x06);
 			}
 
 					receive_pduFlag = 1;
@@ -275,6 +277,8 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 					for (int i = 1; i <= 54; i++) {
 					    sourceArray[i + 42] = fsp_pkt->payload[i]; //43   pay1    + 44  pay2        96-<54
 					}
+//					Uart_sendstring(USART6, "\nPDU_Collected\r\n");
+
 					disconnect_counter_pdu = 0;
 		}
 		break;
@@ -282,8 +286,8 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 		case 0x13:
 		{
-			if(!rs422_report_enable){
-			Uart_sendstring(UART5, "\nIOU:\n");
+			if(!auto_report_enabled){
+			Uart_sendstring(USART6, "\nIOU:\n");
 			int16_t temp_ntc_channel0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
 			int16_t temp_ntc_channel1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
 			int16_t temp_ntc_channel2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
@@ -337,14 +341,14 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 			        neo_led_r, neo_led_g, neo_led_b, neo_led_w,
 			        ir_led_duty);
 
-			Uart_sendstring(UART5, buffer_0x13);
+			Uart_sendstring(USART6, buffer_0x13);
 			}
 			receive_iouFlag = 1;
-
 
 			for (int i = 1; i <= 35; i++) {
 					    sourceArray[i + 7] = fsp_pkt->payload[i]; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
 			}
+//			Uart_sendstring(USART6, "\nIOU_Collected\r\n");
 
 			disconnect_counter_iou = 0;
 

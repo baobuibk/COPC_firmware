@@ -200,7 +200,7 @@ volatile uint8_t timeout_counter_iou = 0;
 
 
 void IOU_update_task(void) {
-	if (auto_report_enabled) {
+	if (rs422_report_enable) {
 
 //	if  not in send and wait
 
@@ -212,7 +212,7 @@ void IOU_update_task(void) {
 			if(!sendFlag){
 				if(!send_rs422){
 					if(receive_pduFlag&&receive_pmuFlag){
-						switch_board(0);
+						switch_board(3);
 						Uart_flush(USART1);
 
 						frame = iou_frame;
@@ -244,11 +244,6 @@ void IOU_update_task(void) {
 }
 
 
-void	iou_create_task(void)
-{
-	SCH_TASK_CreateTask(&IOU_task_context.taskHandle, &IOU_task_context.taskProperty);
-	Ringbuf_init();
-}
 
 
 //int TEST(int argc, char *argv[])

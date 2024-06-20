@@ -46,8 +46,8 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"help_iou", Cmd_help_iou,": Display list of IOU commands | format: help_iou" },
 								{"splash", Cmd_splash,": Splash screen again | format: splash" },
 								{"status_now", Cmd_status_now,": Display <Date&Time>, <Temp> *C, <HardwareVer>, <FirmwareVer>, <Enable>, <Mode> | format: status_now" },
-								{"auto_report_ena", Cmd_auto_report_ena,": Enable Autoreport time_s, default 3 , < 20sec| format: auto_report_ena <sec>" },
-								{"rs422_report_ena", Cmd_rs422_report_ena,": Disable Autoreport time_s | format: auto_report_dis" },
+								{"auto_report_ena", Cmd_auto_report_ena,": Enable Mirror 282 byte to Text as Debug Port | format: auto_report_ena" },
+								{"rs422_report_ena", Cmd_rs422_report_ena,": Report 282 byte packet to RS422, [ESC] to stop | format: rs422_report_ena" },
 								{"set_byte_rs422", Cmd_set_byte_rs422, ": Set Size of packet RS422, Default 282 (150<x<1000) | format: set_byte_rs422 <size>"},
 								{"memory_usage", Cmd_memory_usage, ": %RAM and %FLASH Used | format: memory_usage"},
 //CPOC
@@ -571,7 +571,7 @@ int Cmd_set_byte_rs422(int argc, char *argv[])
     }
 
     if ( size > 1000 || size < 150) {
-        Uart_sendstring(USARTx,"Array size > 150or < 1000.\n");
+        Uart_sendstring(USARTx,"Array size > 150 or < 1000.\n");
         return CMDLINE_INVALID_ARG;
     }
 
@@ -587,27 +587,16 @@ int Cmd_set_byte_rs422(int argc, char *argv[])
 
 int Cmd_auto_report_ena(int argc, char *argv[])
 {
-    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
-    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
     USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
-    int sec = atoi(argv[1]);
-    if (sec <= 0) {
-        Uart_sendstring(USARTx,"\nPlease provide a positive integer.\n");
-        return CMDLINE_INVALID_ARG;
-    }
 
-    if (sec > 20)
-    	{
-    	Uart_sendstring(USARTx,"Arg < 20\n");
-    	return CMDLINE_INVALID_ARG;
-    	}
 
     auto_report_enabled = 1;
  //   RS422_PERIOD = sec * 1000; // Convert seconds to milliseconds
 
-    char msg[50];
-    sprintf(msg, "\nAuto report %d seconds, [ESC] to Stop\n", sec);
-    Uart_sendstring(USARTx, msg);
+
+    Uart_sendstring(USARTx, "\nAuto report mirror from RS422 Packet, [ESC] to Stop\n");
     return CMDLINE_OK;
 }
 

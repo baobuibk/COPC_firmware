@@ -53,7 +53,7 @@ void PDU_create_task(void)
 volatile uint8_t timeout_counter_pdu = 0;
 
 void PDU_update_task(void) {
-	if (auto_report_enabled) {
+	if (rs422_report_enable) {
 
 //	if  not in send and wait
 
@@ -97,11 +97,6 @@ void PDU_update_task(void) {
 }
 
 
-void	pdu_create_task(void)
-{
-	SCH_TASK_CreateTask(&PDU_task_context.taskHandle, &PDU_task_context.taskProperty);
-	Ringbuf_init();
-}
 
 
 

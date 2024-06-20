@@ -3,4 +3,4 @@
 ../Core/CMDLine/rs422.c:50:6:switch_board	5
 ../Core/CMDLine/rs422.c:89:6:RS422_periodic_task	6
 ../Core/CMDLine/rs422.c:145:6:frame_processing_rs422	26
-../Core/CMDLine/rs422.c:362:6:rs422_create_task	1
+../Core/CMDLine/rs422.c:366:6:rs422_create_task	1

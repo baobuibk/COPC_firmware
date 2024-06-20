@@ -3,4 +3,4 @@
 ../Core/CMDLine/rs422.c:50:6:switch_board	16	static
 ../Core/CMDLine/rs422.c:89:6:RS422_periodic_task	72	static
 ../Core/CMDLine/rs422.c:145:6:frame_processing_rs422	1504	static
-../Core/CMDLine/rs422.c:362:6:rs422_create_task	8	static
+../Core/CMDLine/rs422.c:366:6:rs422_create_task	8	static
