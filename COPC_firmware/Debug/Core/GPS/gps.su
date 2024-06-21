@@ -1,0 +1,8 @@
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:1803:26:LL_USART_IsActiveFlag_TC	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:1814:26:LL_USART_IsActiveFlag_TXE	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:2131:22:LL_USART_DisableIT_RXNE	40	static,ignoring_inline_asm
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:2426:22:LL_USART_TransmitData8	16	static
+../Core/GPS/gps.c:43:6:GPS_init	4	static
+../Core/GPS/gps.c:48:6:GPS_create_task	8	static
+../Core/GPS/gps.c:53:13:GPS_SendData	32	static
+../Core/GPS/gps.c:72:6:status_gps_update	72	static
