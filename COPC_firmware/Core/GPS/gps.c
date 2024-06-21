@@ -78,11 +78,8 @@ void status_gps_update(void)
 	UARTStdioConfig(USART3, true);
 
 	//Kiểm tra gói tín hiệu
-	do
-	{
-		count = UARTgets(gps, BUFFER_SIZE);
-	}
-	while(count < 38);
+	count = UARTgets(gps, BUFFER_SIZE);
+
 
 	LL_USART_DisableIT_RXNE(USART3);
 

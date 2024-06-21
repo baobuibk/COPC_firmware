@@ -5,4 +5,4 @@
 ../Core/GPS/gps.c:43:6:GPS_init	1
 ../Core/GPS/gps.c:48:6:GPS_create_task	1
 ../Core/GPS/gps.c:53:13:GPS_SendData	4
-../Core/GPS/gps.c:72:6:status_gps_update	2
+../Core/GPS/gps.c:72:6:status_gps_update	1

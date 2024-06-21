@@ -1316,7 +1316,7 @@ Discarded input sections
  .text.GPS_SendData
                 0x00000000       0x56 ./Core/GPS/gps.o
  .text.status_gps_update
-                0x00000000       0x58 ./Core/GPS/gps.o
+                0x00000000       0x50 ./Core/GPS/gps.o
  .debug_info    0x00000000      0x57b ./Core/GPS/gps.o
  .debug_abbrev  0x00000000      0x2a3 ./Core/GPS/gps.o
  .debug_aranges
@@ -1379,7 +1379,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x1c ./Core/GPS/gps.o
  .debug_macro   0x00000000       0x16 ./Core/GPS/gps.o
  .debug_macro   0x00000000      0x146 ./Core/GPS/gps.o
- .debug_line    0x00000000      0xa05 ./Core/GPS/gps.o
+ .debug_line    0x00000000      0x9f6 ./Core/GPS/gps.o
  .debug_str     0x00000000    0x8d260 ./Core/GPS/gps.o
  .comment       0x00000000       0x44 ./Core/GPS/gps.o
  .debug_frame   0x00000000      0x134 ./Core/GPS/gps.o
