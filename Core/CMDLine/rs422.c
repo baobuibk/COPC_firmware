@@ -82,18 +82,34 @@ void switch_board(uint8_t board_id) {
 
 
 
-uint8_t sourceArray[1000];
-uint8_t destArray[1000];
+//uint8_t nextBuffer[1000];
+//uint8_t destArray[1000];
+//uint8_t sourceBuffer[1000];
+//uint8_t destBuffer[1000];
+//uint8_t buffer1[ARRAY_SIZE];
+//uint8_t buffer2[ARRAY_SIZE];
+//uint8_t* sourceBuffer = buffer1;
+//uint8_t* destBuffer = buffer2;
+
+uint8_t buffer1[1000];
+uint8_t buffer2[1000];
+uint8_t* currentBuffer = buffer1;
+uint8_t* nextBuffer = buffer2;
+
+
 uint8_t packet_sig = 0;
+uint8_t currentSourceBuffer = 0;
 volatile uint8_t count_packet = 0x0A;
+
+
 void RS422_periodic_task(void) {
 	if (rs422_report_enable) {
 
 		if (count_packet == 0x0A)
 		{
 
-			sourceArray[0] = 0x02;
-			sourceArray[ARRAY_SIZE - 1] = 0x03;
+			nextBuffer[0] = 0x02;
+			nextBuffer[ARRAY_SIZE - 1] = 0x03;
 
 		    uint8_t day, date, month, year, hour, min, sec;
 		    DS3231_GetDateTime(&day, &date, &month, &year, &hour, &min, &sec);
@@ -104,48 +120,52 @@ void RS422_periodic_task(void) {
 		    temp = DS3231_GetTemperature();
 		    rounded_temp = (uint8_t)temp;
 
-		    sourceArray[2] = sec;
-		    sourceArray[3] = min;
-		    sourceArray[4] = hour;
-		    sourceArray[5] = date;
-		    sourceArray[6] = month;
-		    sourceArray[7] = rounded_temp;
+		    nextBuffer[2] = sec;
+		    nextBuffer[3] = min;
+		    nextBuffer[4] = hour;
+		    nextBuffer[5] = date;
+		    nextBuffer[6] = month;
+		    nextBuffer[7] = rounded_temp;
 
 
 			count_packet = 0;
 
 			for (int i = 121; i <= 146; i++) {
-			    sourceArray[i] = i - 121;
+				nextBuffer[i] = i - 121;
 			}
 
 
 			for (int i = 147; i <= ARRAY_SIZE-2; i++) {
-			    sourceArray[i] = i - 147;
+				nextBuffer[i] = i - 147;
 			}
 
 
-			uint16_t crc = crc16_CCITT(0xFFFF, &sourceArray[1], ARRAY_SIZE - 4);
+			uint16_t crc = crc16_CCITT(0xFFFF, &nextBuffer[1], ARRAY_SIZE - 4);
 
-			sourceArray[ARRAY_SIZE - 3] = (crc >> 8) & 0xFF;  // CRC#HIGH
-			sourceArray[ARRAY_SIZE - 2] = crc & 0xFF;         // CRC#LOW
+			nextBuffer[ARRAY_SIZE - 3] = (crc >> 8) & 0xFF;  // CRC#HIGH
+			nextBuffer[ARRAY_SIZE - 2] = crc & 0xFF;         // CRC#LOW
 
+            // Switch buffers
+            uint8_t* tempz = currentBuffer;
+            currentBuffer = nextBuffer;
+            nextBuffer = tempz;
 
-			memcpy(destArray, sourceArray, sizeof(sourceArray));
 		}
-		destArray[1] = count_packet;
+
+		currentBuffer[1] = count_packet;
 
 		if (swap_byte_enable){
 			for (int i = 1; i < ARRAY_SIZE - 1; i++) {
-				if (destArray[i] == 0x02) {
-					destArray[i] = 0xFE;
-				} else if (destArray[i] == 0x03) {
-					destArray[i] = 0xFD;
+				if (currentBuffer[i] == 0x02) {
+					currentBuffer[i] = 0xFE;
+				} else if (currentBuffer[i] == 0x03) {
+					currentBuffer[i] = 0xFD;
 				}
 			}
 		}
 
         for (int i = 0; i < ARRAY_SIZE; i++) {
-            Uart_write(UART5, destArray[i]);
+            Uart_write(UART5, currentBuffer[i]);
         }
 
         if(packet_sig){
@@ -155,8 +175,6 @@ void RS422_periodic_task(void) {
         	packet_sig = 1;
         	LL_GPIO_SetOutputPin(GPIOA,LORA_IO0_Pin);
         }
-
-
 
         count_packet++;
 	}
@@ -200,7 +218,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 			receive_pmuFlag = 1;
 
 			for (int i = 1; i <= 24; i++) {
-			    sourceArray[i + 96] = fsp_pkt->payload[i]; //97   pay1    + 98 pay2    120    pay24
+			    nextBuffer[i + 96] = fsp_pkt->payload[i]; //97   pay1    + 98 pay2    120    pay24
 			}
 //			Uart_sendstring(USART6, "\nPMU_Collected\r\n");
 
@@ -295,7 +313,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 					receive_pduFlag = 1;
 
 					for (int i = 1; i <= 54; i++) {
-					    sourceArray[i + 42] = fsp_pkt->payload[i]; //43   pay1    + 44  pay2        96-<54
+					    nextBuffer[i + 42] = fsp_pkt->payload[i]; //43   pay1    + 44  pay2        96-<54
 					}
 //					Uart_sendstring(USART6, "\nPDU_Collected\r\n");
 
@@ -366,7 +384,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 			receive_iouFlag = 1;
 
 			for (int i = 1; i <= 35; i++) {
-					    sourceArray[i + 7] = fsp_pkt->payload[i]; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
+					    nextBuffer[i + 7] = fsp_pkt->payload[i]; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
 			}
 //			Uart_sendstring(USART6, "\nIOU_Collected\r\n");
 
@@ -387,6 +405,7 @@ void	rs422_create_task(void)
 {
 	SCH_TASK_CreateTask(&RS422_task_context.taskHandle, &RS422_task_context.taskProperty);
 	Ringbuf_init();
+
 }
 
 

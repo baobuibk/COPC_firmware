@@ -89,7 +89,7 @@ void PMU_update_task(void) {
 						if(disconnect_counter_pmu> 4){
 							for (int i = 1; i <= 24; i++) {
 								disconnect_counter_pmu = 5;
-								sourceArray[i + 96] = 0xFF; //97   pay1    + 98 pay2    120    pay24
+								nextBuffer[i + 96] = 0xFF; //97   pay1    + 98 pay2    120    pay24
 							}
 						}
 					}

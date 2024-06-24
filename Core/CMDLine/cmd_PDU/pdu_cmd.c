@@ -88,7 +88,7 @@ void PDU_update_task(void) {
 						if(disconnect_counter_pdu > 4){
 							disconnect_counter_pdu = 5;
 							for (int i = 1; i <= 54; i++) {
-								    sourceArray[i + 42] = 0xFF; //43   pay1    + 44  pay2        96-<54
+									nextBuffer[i + 42] = 0xFF; //43   pay1    + 44  pay2        96-<54
 								}
 						}
 					}

@@ -8,16 +8,12 @@
 #include "gps.h"
 #include "../../Scheduler/scheduler.h"
 #include <stm32f4xx_ll_usart.h>
-#include "../../Core/CMDLine/command.h"
-#include "main.h"
-#include "../../BSP/uartstdio/uartstdio.h"
+#include "../../Core/CMDLine/global_vars.h"
 #include <stdio.h>
-
-
+#include "../../BSP/UART/uart.h"
 
 /*Private define*/
-#define BUFFER_SIZE	56
-void status_gps_update(void);
+static void GPS_task_update(void);
 
 /*Private typedef*/
 typedef struct GPS_TaskContextTypedef
@@ -33,59 +29,27 @@ static GPS_TaskContextTypedef		gps_task_context =
 			SCH_TASK_SYNC,                      // taskType;
 			SCH_TASK_PRIO_0,                    // taskPriority;
 			1000,                               // taskPeriodInMS;
-			status_gps_update					// taskFunction;
+			GPS_task_update					// taskFunction;
 		}
 };
 
 
-
-void GPS_init(void)
-{
-
-}
-
 void GPS_create_task(void)
 {
+	Ringbuf_init();
 	SCH_TASK_CreateTask(&gps_task_context.taskHandle, &gps_task_context.taskProperty);
 }
 
-static void GPS_SendData(USART_TypeDef *USARTx, char *buffer, uint32_t bufferSize)
+
+
+static void GPS_task_update(void)
 {
-    for (uint8_t i = 0; i < bufferSize; i++)
-    {
-        // Wait until TXE flag is set
-        while (!LL_USART_IsActiveFlag_TXE(USARTx))
-        {
-        }
-
-        // Transmit data
-        LL_USART_TransmitData8(USARTx, buffer[i]);
-    }
-
-    // Wait until TC flag is set
-    while (!LL_USART_IsActiveFlag_TC(USARTx))
-    {
-    }
-}
-
-void status_gps_update(void)
-{
-	char gps[BUFFER_SIZE] = {0};
-	uint32_t count;
-
-	//Nhận data từ gps
-	UARTStdioConfig(USART3, true);
-
-	//Kiểm tra gói tín hiệu
-	do
-	{
-		count = UARTgets(gps, BUFFER_SIZE);
+	if(gps_report_enable){
+		uint8_t rxData;
+		while (IsDataAvailable(USART3))
+		{
+			rxData = Uart_read(USART3);
+			Uart_write(USART2, rxData);
+		}
 	}
-	while(count < 38);
-
-	LL_USART_DisableIT_RXNE(USART3);
-
-
-	//truyền tín hiệu sang RF
-	GPS_SendData(USART2, gps, count);
 }

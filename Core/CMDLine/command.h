@@ -43,6 +43,7 @@ int Cmd_cpoc_reset(int argc, char *argv[]);
 //int Cmd_board_alive(int argc, char *argv[]);
 int Cmd_rf_ena(int argc, char *argv[]);
 int Cmd_rf_dis(int argc, char *argv[]);
+int Cmd_start_positioining(int argc, char *argv[]);
 
 
 #endif /* CMDLINE_COMMAND_H_ */

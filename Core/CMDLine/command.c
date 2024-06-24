@@ -68,7 +68,7 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"gps_status", NotYetDefine, ": Get Status GPS | format: gps_status"}	,
 								{"gps_get", NotYetDefine, ": Get GPS Data | format: gps_get"}	,
 								{"gps_set", NotYetDefine, ": Setting GPS Hardware | format: ********"}	,
-								{"start_positioining", NotYetDefine, ": Continuously send  GPS Data to LORA | format: start_positioining"}	,
+								{"start_positioining", Cmd_start_positioining, ": Continuously send  GPS Data to LORA | format: start_positioining"}	,
 //PMU
 								{"pmu_get_temp", Cmd_pmu_get_temp, ": Response 4 NTC channel in Celsius | format: pmu_temp"}	,
 								{"pmu_bat_vol", Cmd_pmu_bat_vol, ": Response 4 BAT channel in Voltage | format: pmu_bat_vol"}	,
@@ -247,6 +247,7 @@ void process_command(USART_TypeDef* USARTx, char rxData)
     {
     	auto_report_enabled = 0;
         rs422_report_enable = 0;
+        gps_report_enable = 0;
         return;
     }
 
@@ -752,7 +753,14 @@ int Cmd_rf_dis(int argc, char *argv[]){
 	return (CMDLINE_OK);
 }
 
-
+volatile uint8_t gps_report_enable = 0;
+int Cmd_start_positioining (int argc, char *argv[]){
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+	gps_report_enable = 1;
+	Uart_sendstring(USARTx, "\nStart reporting position to RF, [ESC] to Stop\r\n");
+	// Return success.
+	return (CMDLINE_OK);
+}
 
 
 void	command_create_task(void)

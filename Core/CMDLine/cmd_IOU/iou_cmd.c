@@ -235,7 +235,7 @@ void IOU_update_task(void) {
 						if(disconnect_counter_iou> 4){
 							disconnect_counter_iou = 5;
 							for (int i = 1; i <= 35; i++) {
-									    sourceArray[i + 7] = 0xFF; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
+								nextBuffer[i + 7] = 0xFF; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
 							}
 						}
 					}
