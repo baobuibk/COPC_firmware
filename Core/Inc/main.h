@@ -83,6 +83,8 @@ void Error_Handler(void);
 #define CAM_INT_MCU_GPIO_Port GPIOC
 #define WD_DONE_Pin LL_GPIO_PIN_1
 #define WD_DONE_GPIO_Port GPIOA
+#define LORA_IO0_Pin LL_GPIO_PIN_4
+#define LORA_IO0_GPIO_Port GPIOA
 #define LED_busy_Pin LL_GPIO_PIN_5
 #define LED_busy_GPIO_Port GPIOC
 #define ENABLE_RF_Pin LL_GPIO_PIN_12

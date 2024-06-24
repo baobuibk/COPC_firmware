@@ -27,6 +27,7 @@ SUBDIRS := \
 BSP/RTC \
 BSP/SysTick \
 BSP/UART \
+BSP/uartstdio \
 Core/CMDLine/ACK_packet \
 Core/CMDLine/cmd_CAM \
 Core/CMDLine/cmd_IOU \
@@ -34,6 +35,7 @@ Core/CMDLine/cmd_PDU \
 Core/CMDLine/cmd_PMU \
 Core/CMDLine \
 Core/CPOC \
+Core/GPS \
 Core/LED \
 Core/SYS \
 Core/Src \

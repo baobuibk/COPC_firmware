@@ -36,6 +36,7 @@ extern uint8_t sourceArray[1000];
 
 
 extern volatile uint8_t auto_report_enabled;
+extern volatile uint8_t swap_byte_enable;
 //extern uint32_t RS422_PERIOD;
 
 #endif /* CMDLINE_GLOBAL_VARS_H_ */

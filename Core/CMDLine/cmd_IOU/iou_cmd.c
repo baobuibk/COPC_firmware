@@ -224,16 +224,18 @@ void IOU_update_task(void) {
 						send_rs422 = 1;
 						SCH_TIM_Start(SCH_TIM_IOU, IOU_PERIOD);
 					}
-					if(!receive_iouFlag){
-						timeout_counter_iou++;
-						if (timeout_counter_iou > 2){
-							disconnect_counter_iou++;
-							timeout_counter_iou = 0;
-							receive_pmuFlag = 1;
-							if(disconnect_counter_iou> 4){
-								for (int i = 1; i <= 35; i++) {
-										    sourceArray[i + 7] = 0xFF; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
-								}
+				}
+				if(!receive_iouFlag){
+					timeout_counter_iou++;
+					if (timeout_counter_iou > 2){
+						disconnect_counter_iou++;
+						timeout_counter_iou = 0;
+						receive_iouFlag = 1;
+						send_rs422 = 0;
+						if(disconnect_counter_iou> 4){
+							disconnect_counter_iou = 5;
+							for (int i = 1; i <= 35; i++) {
+									    sourceArray[i + 7] = 0xFF; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
 							}
 						}
 					}

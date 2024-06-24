@@ -77,17 +77,19 @@ void PDU_update_task(void) {
 						send_rs422 = 1;
 						SCH_TIM_Start(SCH_TIM_PDU, PDU_PERIOD);
 					}
-					if(!receive_pduFlag){
-						timeout_counter_pdu++;
-						if (timeout_counter_pdu > 2){
-							disconnect_counter_pdu++;
-							timeout_counter_pdu = 0;
-							receive_pduFlag = 1;
-							if(disconnect_counter_pdu> 4){
-								for (int i = 1; i <= 54; i++) {
-									    sourceArray[i + 42] = 0xFF; //43   pay1    + 44  pay2        96-<54
-									}
-							}
+				}
+				if(!receive_pduFlag){
+					timeout_counter_pdu++;
+					if (timeout_counter_pdu > 2){
+						disconnect_counter_pdu++;
+						timeout_counter_pdu = 0;
+						receive_pduFlag = 1;
+						send_rs422 = 0;
+						if(disconnect_counter_pdu > 4){
+							disconnect_counter_pdu = 5;
+							for (int i = 1; i <= 54; i++) {
+								    sourceArray[i + 42] = 0xFF; //43   pay1    + 44  pay2        96-<54
+								}
 						}
 					}
 				}

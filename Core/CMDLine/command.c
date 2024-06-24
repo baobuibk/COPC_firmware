@@ -49,6 +49,8 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"auto_report_ena", Cmd_auto_report_ena,": Enable Mirror 282 byte to Text as Debug Port | format: auto_report_ena" },
 								{"rs422_report_ena", Cmd_rs422_report_ena,": Report 282 byte packet to RS422, [ESC] to stop | format: rs422_report_ena" },
 								{"set_byte_rs422", Cmd_set_byte_rs422, ": Set Size of packet RS422, Default 282 (150<x<1000) | format: set_byte_rs422 <size>"},
+								{"swap_byte_ena", Cmd_swap_byte_ena, ": Enable swap byte RS422, 0x02->0xFE, 0x03->0xFD | format: swap_byte_ena"},
+								{"swap_byte_dis", Cmd_swap_byte_dis, ": Disable swap byte RS422 | format: swap_byte_dis"},
 								{"memory_usage", Cmd_memory_usage, ": %RAM and %FLASH Used | format: memory_usage"},
 //CPOC
 								{"time_get", Cmd_time_get , ": Get RTC Time | format: time_get"},
@@ -201,7 +203,7 @@ void	command_init(void)
         Uart_sendstring(USART6, pEntry->pcHelp);
         Uart_sendstring(USART6, "\r\n");
 
-	    if (pEntry == &g_psCmdTable[11]) {
+	    if (pEntry == &g_psCmdTable[12]) {
 	        break;
 	    }
 	    pEntry++;
@@ -297,7 +299,7 @@ int Cmd_help(int argc, char *argv[]) {
         Uart_sendstring(USARTx, pEntry->pcCmd);
         Uart_sendstring(USARTx, pEntry->pcHelp);
         Uart_sendstring(USARTx, "\r\n");
-        if (pEntry == &g_psCmdTable[11]) {
+        if (pEntry == &g_psCmdTable[12]) {
             break;
         }
         pEntry++;
@@ -325,25 +327,25 @@ int Cmd_help_all(int argc, char *argv[]) {
 		Uart_sendstring(USARTx, "\r\n");
 
 
-	    if (pEntry == &g_psCmdTable[11]) {
-	        Uart_sendstring(USARTx, "\n--------------CPOC Command List-------------\r\n");
-	    }
-
-	    else if (pEntry == &g_psCmdTable[27]) {
-	        Uart_sendstring(USARTx, "\n--------------PMU Command List-------------\r\n");
-	    }
-
-	    else if (pEntry == &g_psCmdTable[34]) {
-	        Uart_sendstring(USARTx, "\n--------------PDU Command List-------------\r\n");
-	    }
-
-	    else if (pEntry == &g_psCmdTable[40]) {
-	        Uart_sendstring(USARTx, "\n--------------CAM Command List-------------\r\n");
-	    }
-
-	    else if (pEntry == &g_psCmdTable[41]) {
-	        Uart_sendstring(USARTx, "\n--------------IOU Command List-------------\r\n");
-	    }
+//	    if (pEntry == &g_psCmdTable[11]) {
+//	        Uart_sendstring(USARTx, "\n--------------CPOC Command List-------------\r\n");
+//	    }
+//
+//	    else if (pEntry == &g_psCmdTable[27]) {
+//	        Uart_sendstring(USARTx, "\n--------------PMU Command List-------------\r\n");
+//	    }
+//
+//	    else if (pEntry == &g_psCmdTable[34]) {
+//	        Uart_sendstring(USARTx, "\n--------------PDU Command List-------------\r\n");
+//	    }
+//
+//	    else if (pEntry == &g_psCmdTable[40]) {
+//	        Uart_sendstring(USARTx, "\n--------------CAM Command List-------------\r\n");
+//	    }
+//
+//	    else if (pEntry == &g_psCmdTable[41]) {
+//	        Uart_sendstring(USARTx, "\n--------------IOU Command List-------------\r\n");
+//	    }
 
 
 		// Advance to the next entry in the table.
@@ -360,7 +362,7 @@ int Cmd_help_cpoc(int argc, char *argv[]) {
 	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
     Uart_sendstring(USARTx, "--------------CPOC Command List-------------\r\n");
 	// Point at the beginning of the command table.
-	pEntry = &g_psCmdTable[12];
+	pEntry = &g_psCmdTable[13];
 
 	// Enter a loop to read each entry from the command table.  The
 	// end of the table has been reached when the command name is NULL.
@@ -616,6 +618,39 @@ int Cmd_rs422_report_ena(int argc, char *argv[])
     Uart_sendstring(USARTx, msg);
     return CMDLINE_OK;
 }
+
+volatile uint8_t swap_byte_enable = 0;
+
+int Cmd_swap_byte_ena(int argc, char *argv[])
+{
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+
+
+    swap_byte_enable = 1;
+ //   RS422_PERIOD = sec * 1000; // Convert seconds to milliseconds
+
+
+    Uart_sendstring(USARTx, "\nEnabled swap byte RS422, NOT INCLUDE STX-ETX, 0x02->0xFE, 0x03->0xFD \n");
+    return CMDLINE_OK;
+}
+
+int Cmd_swap_byte_dis(int argc, char *argv[])
+{
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+
+
+    swap_byte_enable = 0;
+ //   RS422_PERIOD = sec * 1000; // Convert seconds to milliseconds
+
+
+    Uart_sendstring(USARTx, "\nDISABLE!!!\n");
+    return CMDLINE_OK;
+}
+
 
 
 int Cmd_memory_usage(int argc, char *argv[]) {

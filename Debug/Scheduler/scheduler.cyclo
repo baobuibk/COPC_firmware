@@ -11,5 +11,4 @@
 ../Scheduler/scheduler.c:349:6:SCH_StartSchedular	1
 ../Scheduler/scheduler.c:362:6:SCH_StopSchedular	1
 ../Scheduler/scheduler.c:378:6:SCH_HandleScheduledTask	8
-../Scheduler/scheduler.c:427:6:SCH_Delay	2
 ../Scheduler/scheduler.c:442:10:SCH_SystemTick	1

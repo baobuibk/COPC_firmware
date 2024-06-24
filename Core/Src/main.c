@@ -690,7 +690,7 @@ static void MX_GPIO_Init(void)
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOA, WD_DONE_Pin|BOARD_SEL_B_Pin|BOARD_SEL_A_Pin);
+  LL_GPIO_ResetOutputPin(GPIOA, WD_DONE_Pin|LORA_IO0_Pin|BOARD_SEL_B_Pin|BOARD_SEL_A_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(GPIOC, LED_busy_Pin|ENABLE_MUX_Pin);
@@ -706,7 +706,7 @@ static void MX_GPIO_Init(void)
   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = WD_DONE_Pin|BOARD_SEL_B_Pin|BOARD_SEL_A_Pin;
+  GPIO_InitStruct.Pin = WD_DONE_Pin|LORA_IO0_Pin|BOARD_SEL_B_Pin|BOARD_SEL_A_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;

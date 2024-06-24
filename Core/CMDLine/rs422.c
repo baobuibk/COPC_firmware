@@ -84,11 +84,12 @@ void switch_board(uint8_t board_id) {
 
 uint8_t sourceArray[1000];
 uint8_t destArray[1000];
-
-volatile uint8_t count_packet = 0;
+uint8_t packet_sig = 0;
+volatile uint8_t count_packet = 0x0A;
 void RS422_periodic_task(void) {
 	if (rs422_report_enable) {
-		if (SCH_TIM_HasCompleted(SCH_TIM_RS422))
+
+		if (count_packet == 0x0A)
 		{
 
 			sourceArray[0] = 0x02;
@@ -130,13 +131,32 @@ void RS422_periodic_task(void) {
 
 
 			memcpy(destArray, sourceArray, sizeof(sourceArray));
-			SCH_TIM_Start(SCH_TIM_RS422, RS422_PERIOD);
 		}
 		destArray[1] = count_packet;
+
+		if (swap_byte_enable){
+			for (int i = 1; i < ARRAY_SIZE - 1; i++) {
+				if (destArray[i] == 0x02) {
+					destArray[i] = 0xFE;
+				} else if (destArray[i] == 0x03) {
+					destArray[i] = 0xFD;
+				}
+			}
+		}
 
         for (int i = 0; i < ARRAY_SIZE; i++) {
             Uart_write(UART5, destArray[i]);
         }
+
+        if(packet_sig){
+        	packet_sig = 0;
+            LL_GPIO_ResetOutputPin(GPIOA,LORA_IO0_Pin);
+        }else{
+        	packet_sig = 1;
+        	LL_GPIO_SetOutputPin(GPIOA,LORA_IO0_Pin);
+        }
+
+
 
         count_packet++;
 	}

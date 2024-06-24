@@ -26,7 +26,7 @@ static WDT_TaskContextTypedef           wdt_task_context =
 	{
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
-		100,                                // taskPeriodInMS;
+		200,                                // taskPeriodInMS;
 		status_wdt_update					// taskFunction;
 	}
 };

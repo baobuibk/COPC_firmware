@@ -424,14 +424,14 @@ void SCH_HandleScheduledTask(void)
   * @param  uint32_t delayInMs - delay time in milliseconds
   * @retval None
   *****************************************************************************/
-void SCH_Delay(uint32_t delayInMs)
-{
-    // Start the delay timer
-    SCH_TIM_Start(SCH_TIM_DELAY, delayInMs);
-
-    // Wait until the delay timer completes
-    while(!SCH_TIM_HasCompleted(SCH_TIM_DELAY));
-}
+//void SCH_Delay(uint32_t delayInMs)
+//{
+//    // Start the delay timer
+//    SCH_TIM_Start(SCH_TIM_DELAY, delayInMs);
+//
+//    // Wait until the delay timer completes
+//    while(!SCH_TIM_HasCompleted(SCH_TIM_DELAY));
+//}
 
 /*******************************************************************************
   * @name   SCH_SystemTick

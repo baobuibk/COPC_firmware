@@ -107,7 +107,7 @@ void SCH_RunSystemTickTimer(void);
 void SCH_StartSchedular(void);
 void SCH_StopSchedular(void);
 void SCH_HandleScheduledTask(void);
-void SCH_Delay(uint32_t delayInMs);
+//void SCH_Delay(uint32_t delayInMs);
 uint32_t SCH_SystemTick(void);
 
 t_Status SCH_TIM_CreateTimer(SCH_TIMER_HANDLE* pHandle, SCH_TimerPropertyTypedef* pTimerProperty);

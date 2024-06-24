@@ -17,6 +17,7 @@ RM := rm -rf
 -include Core/Src/subdir.mk
 -include Core/SYS/subdir.mk
 -include Core/LED/subdir.mk
+-include Core/GPS/subdir.mk
 -include Core/CPOC/subdir.mk
 -include Core/CMDLine/cmd_PMU/subdir.mk
 -include Core/CMDLine/cmd_PDU/subdir.mk
@@ -24,6 +25,7 @@ RM := rm -rf
 -include Core/CMDLine/cmd_CAM/subdir.mk
 -include Core/CMDLine/ACK_packet/subdir.mk
 -include Core/CMDLine/subdir.mk
+-include BSP/uartstdio/subdir.mk
 -include BSP/UART/subdir.mk
 -include BSP/SysTick/subdir.mk
 -include BSP/RTC/subdir.mk
