@@ -11,6 +11,7 @@
 
 USART_TypeDef *uart1 = USART1;
 USART_TypeDef *uart2 = USART2;
+USART_TypeDef *uart3 = USART3;
 USART_TypeDef *uart5 = UART5;
 USART_TypeDef *uart6 = USART6;
 
@@ -20,12 +21,14 @@ uint16_t timeout;
 #define ATOMIC_BLOCK_START(uart) \
     if (uart == USART1) LL_USART_DisableIT_RXNE(uart1); \
     else if (uart == USART2) LL_USART_DisableIT_RXNE(uart2); \
+    else if (uart == USART3) LL_USART_DisableIT_RXNE(uart3); \
     else if (uart == UART5) LL_USART_DisableIT_RXNE(uart5); \
     else LL_USART_DisableIT_RXNE(uart6);
 
 #define ATOMIC_BLOCK_END(uart) \
     if (uart == USART1) LL_USART_EnableIT_RXNE(uart1); \
     else if (uart == USART2) LL_USART_EnableIT_RXNE(uart2); \
+    else if (uart == USART3) LL_USART_EnableIT_RXNE(uart3); \
     else if (uart == UART5) LL_USART_EnableIT_RXNE(uart5); \
     else LL_USART_EnableIT_RXNE(uart6);
 
@@ -38,6 +41,8 @@ ring_buffer rx_buffer1 = { { 0 }, 0, 0};
 ring_buffer tx_buffer1 = { { 0 }, 0, 0};
 ring_buffer rx_buffer2 = { { 0 }, 0, 0};
 ring_buffer tx_buffer2 = { { 0 }, 0, 0};
+ring_buffer rx_buffer3 = { { 0 }, 0, 0};
+ring_buffer tx_buffer3 = { { 0 }, 0, 0};
 ring_buffer rx_buffer5 = { { 0 }, 0, 0};
 ring_buffer tx_buffer5 = { { 0 }, 0, 0};
 ring_buffer rx_buffer6 = { { 0 }, 0, 0};
@@ -47,6 +52,8 @@ ring_buffer *_rx_buffer1;
 ring_buffer *_tx_buffer1;
 ring_buffer *_rx_buffer2;
 ring_buffer *_tx_buffer2;
+ring_buffer *_rx_buffer3;
+ring_buffer *_tx_buffer3;
 ring_buffer *_rx_buffer5;
 ring_buffer *_tx_buffer5;
 ring_buffer *_rx_buffer6;
@@ -61,6 +68,8 @@ void Ringbuf_init(void)
   _tx_buffer1 = &tx_buffer1;
   _rx_buffer2 = &rx_buffer2;
   _tx_buffer2 = &tx_buffer2;
+  _rx_buffer3 = &rx_buffer3;
+  _tx_buffer3 = &tx_buffer3;
   _rx_buffer5 = &rx_buffer5;
   _tx_buffer5 = &tx_buffer5;
   _rx_buffer6 = &rx_buffer6;
@@ -69,11 +78,13 @@ void Ringbuf_init(void)
   /* Enable the UART Error Interrupt: (Frame error, noise error, overrun error) */
   LL_USART_EnableIT_ERROR(uart1);
   LL_USART_EnableIT_ERROR(uart2);
+  LL_USART_EnableIT_ERROR(uart3);
   LL_USART_EnableIT_ERROR(uart5);
   LL_USART_EnableIT_ERROR(uart6);
   /* Enable the UART Data Register not empty Interrupt */
   LL_USART_EnableIT_RXNE(uart1);
   LL_USART_EnableIT_RXNE(uart2);
+  LL_USART_EnableIT_RXNE(uart3);
   LL_USART_EnableIT_RXNE(uart5);
   LL_USART_EnableIT_RXNE(uart6);
 }
@@ -83,53 +94,20 @@ void store_char(unsigned char c, ring_buffer *buffer)
   int i = (unsigned int)(buffer->head + 1) % UART_BUFFER_SIZE;
 
   if(i != buffer->tail) {
-	ATOMIC_BLOCK_START(USART1)
-	ATOMIC_BLOCK_START(USART2)
-	ATOMIC_BLOCK_START(UART5)
-	ATOMIC_BLOCK_START(USART6)
+    ATOMIC_BLOCK_START(USART1)
+    ATOMIC_BLOCK_START(USART2)
+    ATOMIC_BLOCK_START(USART3)
+    ATOMIC_BLOCK_START(UART5)
+    ATOMIC_BLOCK_START(USART6)
     buffer->buffer[buffer->head] = c;
     buffer->head = i;
     ATOMIC_BLOCK_END(USART1)
     ATOMIC_BLOCK_END(USART2)
+    ATOMIC_BLOCK_END(USART3)
     ATOMIC_BLOCK_END(UART5)
     ATOMIC_BLOCK_END(USART6)
   }
-
 }
-
-//static int check_for (char *str, char *buffertolookinto)
-//{
-//	int stringlength = strlen (str);
-//	int bufferlength = strlen (buffertolookinto);
-//	int so_far = 0;
-//	int indx = 0;
-//repeat:
-//	while (str[so_far] != buffertolookinto[indx])
-//		{
-//			indx++;
-//			if (indx>stringlength) return 0;
-//		}
-//	if (str[so_far] == buffertolookinto[indx])
-//	{
-//		while (str[so_far] == buffertolookinto[indx])
-//		{
-//			so_far++;
-//			indx++;
-//		}
-//	}
-//
-//	if (so_far == stringlength);
-//	else
-//	{
-//		so_far =0;
-//		if (indx >= bufferlength) return -1;
-//		goto repeat;
-//	}
-//
-//	if (so_far == stringlength) return 1;
-//	else return -1;
-//}
-//
 
 int Uart_read(USART_TypeDef *uart)
 {
@@ -141,6 +119,9 @@ int Uart_read(USART_TypeDef *uart)
       break;
     case (uint32_t)USART2:
       _rx_buffer = _rx_buffer2;
+      break;
+    case (uint32_t)USART3:
+      _rx_buffer = _rx_buffer3;
       break;
     case (uint32_t)UART5:
       _rx_buffer = _rx_buffer5;
@@ -175,6 +156,9 @@ void Uart_write(USART_TypeDef *uart, int c)
     case (uint32_t)USART2:
       _tx_buffer = _tx_buffer2;
       break;
+    case (uint32_t)USART3:
+      _tx_buffer = _tx_buffer3;
+      break;
     case (uint32_t)UART5:
       _tx_buffer = _tx_buffer5;
       break;
@@ -183,32 +167,35 @@ void Uart_write(USART_TypeDef *uart, int c)
       break;
   }
 
-	if (c>=0)
-	{
-		int i = (_tx_buffer->head + 1) % UART_BUFFER_SIZE;
+  if (c >= 0)
+  {
+    int i = (_tx_buffer->head + 1) % UART_BUFFER_SIZE;
 
-		ATOMIC_BLOCK_START(uart)
-		while (i == _tx_buffer->tail);
+    ATOMIC_BLOCK_START(uart)
+    while (i == _tx_buffer->tail);
 
-		_tx_buffer->buffer[_tx_buffer->head] = (uint8_t)c;
-		_tx_buffer->head = i;
-		ATOMIC_BLOCK_END(uart)
+    _tx_buffer->buffer[_tx_buffer->head] = (uint8_t)c;
+    _tx_buffer->head = i;
+    ATOMIC_BLOCK_END(uart)
 
-		  switch ((uint32_t)uart) {
-		    case (uint32_t)USART1:
-		      LL_USART_EnableIT_TXE(uart1);
-		      break;
-		    case (uint32_t)USART2:
-		      LL_USART_EnableIT_TXE(uart2);
-		      break;
-		    case (uint32_t)UART5:
-		      LL_USART_EnableIT_TXE(uart5);
-		      break;
-		    default:
-		      LL_USART_EnableIT_TXE(uart6);
-		      break;
-		  }
-	}
+    switch ((uint32_t)uart) {
+      case (uint32_t)USART1:
+        LL_USART_EnableIT_TXE(uart1);
+        break;
+      case (uint32_t)USART2:
+        LL_USART_EnableIT_TXE(uart2);
+        break;
+      case (uint32_t)USART3:
+        LL_USART_EnableIT_TXE(uart3);
+        break;
+      case (uint32_t)UART5:
+        LL_USART_EnableIT_TXE(uart5);
+        break;
+      default:
+        LL_USART_EnableIT_TXE(uart6);
+        break;
+    }
+  }
 }
 
 /* checks if the new data is available in the incoming buffer
@@ -222,6 +209,9 @@ int IsDataAvailable(USART_TypeDef *uart)
 	      break;
 	    case (uint32_t)USART2:
 	      _rx_buffer = _rx_buffer2;
+	      break;
+	    case (uint32_t)USART3:
+	      _rx_buffer = _rx_buffer3;
 	      break;
 	    case (uint32_t)UART5:
 	      _rx_buffer = _rx_buffer5;
@@ -311,6 +301,9 @@ void Uart_flush (USART_TypeDef *uart)
 	    case (uint32_t)USART2:
 	      _rx_buffer = _rx_buffer2;
 	      break;
+	    case (uint32_t)USART3:
+	      _rx_buffer = _rx_buffer3;
+	      break;
 	    case (uint32_t)UART5:
 	      _rx_buffer = _rx_buffer5;
 	      break;
@@ -333,6 +326,9 @@ int Uart_peek(USART_TypeDef *uart)
 	      break;
 	    case (uint32_t)USART2:
 	      _rx_buffer = _rx_buffer2;
+	      break;
+	    case (uint32_t)USART3:
+	      _rx_buffer = _rx_buffer3;
 	      break;
 	    case (uint32_t)UART5:
 	      _rx_buffer = _rx_buffer5;
@@ -361,6 +357,9 @@ int Copy_upto (USART_TypeDef *uart, char *string, char *buffertocopyinto)
 	      break;
 	    case (uint32_t)USART2:
 	      _rx_buffer = _rx_buffer2;
+	      break;
+	    case (uint32_t)USART3:
+	      _rx_buffer = _rx_buffer3;
 	      break;
 	    case (uint32_t)UART5:
 	      _rx_buffer = _rx_buffer5;
@@ -426,6 +425,9 @@ int Wait_for (USART_TypeDef *uart, char *string)
 	    case (uint32_t)USART2:
 	      _rx_buffer = _rx_buffer2;
 	      break;
+	    case (uint32_t)USART3:
+	      _rx_buffer = _rx_buffer3;
+	      break;
 	    case (uint32_t)UART5:
 	      _rx_buffer = _rx_buffer5;
 	      break;
@@ -488,6 +490,10 @@ void Uart_isr (USART_TypeDef *uart)
       case (uint32_t)USART2:
         _rx_buffer = _rx_buffer2;
         _tx_buffer = _tx_buffer2;
+        break;
+      case (uint32_t)USART3:
+        _rx_buffer = _rx_buffer3;
+        _tx_buffer = _tx_buffer3;
         break;
       case (uint32_t)UART5:
         _rx_buffer = _rx_buffer5;

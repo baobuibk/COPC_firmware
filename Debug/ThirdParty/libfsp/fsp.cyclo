@@ -11,4 +11,4 @@
 ../ThirdParty/libfsp/fsp.c:197:9:fsp_decode	13
 ../ThirdParty/libfsp/fsp.c:282:5:frame_decode	12
 ../ThirdParty/libfsp/fsp.c:358:5:frame_decode_rs422	7
-../ThirdParty/libfsp/fsp.c:432:5:frame_processing	81
+../ThirdParty/libfsp/fsp.c:432:5:frame_processing	105

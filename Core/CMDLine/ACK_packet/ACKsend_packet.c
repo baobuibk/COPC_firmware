@@ -103,10 +103,13 @@ void	status_ACKsend_update(void)
 			    		retryCount = 0;
 			    		clear_send_flag();
 
-			    		Uart_sendstring(UART5, "TIMEOUT_NORESPONE");
+			    		Uart_sendstring(UART5, "\nTIMEOUT_NORESPONE");
 			    		Uart_sendstring(UART5, "\r\n> ");
-			    		Uart_sendstring(USART6, "TIMEOUT_NORESPONE");
+			    		Uart_sendstring(USART6, "\nTIMEOUT_NORESPONE");
 			    		Uart_sendstring(USART6, "\r\n> ");
+			    		Uart_sendstring(USART2, "\nTIMEOUT_NORESPONE");
+			    		Uart_sendstring(USART2, "\r\n> ");
+			    		clear_send_flag();
 			        }
 
 

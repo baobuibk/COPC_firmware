@@ -129,6 +129,14 @@ int Cmd_pdu_set_channel(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PDU_SET_CHANNEL;
     uint8_t payload[2];
     payload[0]  = channel;
@@ -185,6 +193,14 @@ int Cmd_pdu_set_buck(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PDU_SET_BUCK;
     uint8_t payload[2];
     payload[0]  = buck;
@@ -238,6 +254,14 @@ int Cmd_pdu_set_all(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PDU_SET_ALL;
     uint8_t payload[1];
     payload[0]  = state;
@@ -290,6 +314,14 @@ int Cmd_pdu_get_channel(int argc, char *argv[])
     	uart_choose_uart5 = 0;
     }
 
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
+
     uint8_t cmd  = CMD_CODE_PDU_GET_CHANNEL;
     uint8_t payload[1];
     payload[0]  = channel;
@@ -341,6 +373,14 @@ int Cmd_pdu_get_buck(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PDU_GET_BUCK;
     uint8_t payload[1];
     payload[0]  = buck;
@@ -391,6 +431,14 @@ int Cmd_pdu_get_all(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PDU_GET_ALL;
 
 

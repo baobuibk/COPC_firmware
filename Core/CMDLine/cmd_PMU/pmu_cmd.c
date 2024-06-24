@@ -124,6 +124,14 @@ int Cmd_pmu_get_temp(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PMU_GET_TEMP;
     fsp_packet_t fsp_pkt;
 
@@ -169,6 +177,14 @@ int Cmd_pmu_bat_vol(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_BAT_VOL;
     fsp_packet_t fsp_pkt;
 
@@ -216,6 +232,14 @@ int Cmd_pmu_parag_in(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PARAG_IN;
     fsp_packet_t fsp_pkt;
 
@@ -262,6 +286,14 @@ int Cmd_pmu_parag_out(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PARAG_OUT;
     fsp_packet_t fsp_pkt;
 
@@ -312,6 +344,11 @@ int Cmd_pmu_set_temppoint(int argc, char *argv[])
     	uart_choose_uart5 = 1;
     }else{
     	uart_choose_uart5 = 0;
+    }
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
     }
     uint8_t cmd  = CMD_CODE_PMU_TEMP_POINT;
 
@@ -368,6 +405,14 @@ int Cmd_pmu_set_output(int argc, char *argv[])
     	uart_choose_uart5 = 0;
     }
 
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
+
     uint8_t cmd  = CMD_CODE_PMU_OUTPUT;
 
     uint8_t payload[4];
@@ -421,6 +466,14 @@ int Cmd_pmu_set_pwm(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_PMU_PWM;
 
     uint8_t payload[4];
@@ -472,6 +525,13 @@ int Cmd_pmu_get_all(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
     uint8_t cmd  = CMD_CODE_PMU_ALL;
     fsp_packet_t fsp_pkt;
 

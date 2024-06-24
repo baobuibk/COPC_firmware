@@ -442,6 +442,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
                     if (uart_choose_uart5) {
                     	Uart_sendstring(UART5, "\nPMU_ACK\r\n> ");
                     }
+                    if (uart_choose_usart2) {
+                    	Uart_sendstring(USART2, "\nPMU_ACK\r\n> ");
+                    }
 					Uart_sendstring(USART6, "\nPMU_ACK\r\n> ");
 
 				case FSP_PKT_TYPE_CMD_W_DATA:
@@ -456,6 +459,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 		                    if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x00);
 		                    }
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x00);
+		                    }
 							Uart_sendstring(USART6, buffer_0x00);
 
 						}
@@ -468,6 +474,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0xFF);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0xFF);
+		                    }
 							Uart_sendstring(USART6, buffer_0xFF);
 						}
 							break;
@@ -488,6 +497,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x01);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x01);
+		                    }
 							Uart_sendstring(USART6, buffer_0x01);
 						}
 						break;
@@ -505,6 +517,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x02);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x02);
+		                    }
 							Uart_sendstring(USART6, buffer_0x02);
 						}
 							break;
@@ -520,6 +535,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x03);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x03);
+		                    }
 							Uart_sendstring(USART6, buffer_0x03);
 
 						}
@@ -538,6 +556,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 							    Uart_sendstring(UART5, buffer_0x04_pmu);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x04_pmu);
+		                    }
 							Uart_sendstring(USART6, buffer_0x04_pmu);
 						}
 
@@ -576,6 +597,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 									if (uart_choose_uart5) {
 								    	Uart_sendstring(UART5, buffer_0x08);
 									}
+				                    if (uart_choose_usart2) {
+				                    	Uart_sendstring(USART2, buffer_0x08);
+				                    }
 									Uart_sendstring(USART6, buffer_0x08);
 
 
@@ -599,6 +623,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 					if (uart_choose_uart5) {
 						Uart_sendstring(UART5, "\n> PDU_ACK\r\n> ");
 					}
+                    if (uart_choose_usart2) {
+                    	Uart_sendstring(USART2, "\n> PDU_ACK\r\n> ");
+                    }
 					Uart_sendstring(USART6, "\n> PDU_ACK\r\n> ");
 
 					break;
@@ -614,6 +641,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x00);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x00);
+		                    }
 							Uart_sendstring(USART6, buffer_0x00);
 
 						}
@@ -625,6 +655,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0xFF);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0xFF);
+		                    }
 							Uart_sendstring(USART6, buffer_0xFF);
 
 						}
@@ -642,6 +675,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 									if (uart_choose_uart5) {
 										Uart_sendstring(UART5, buffer_0x07);
 									}
+				                    if (uart_choose_usart2) {
+				                    	Uart_sendstring(USART2, buffer_0x07);
+				                    }
 									Uart_sendstring(USART6, buffer_0x07);
 
 						}
@@ -658,6 +694,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 									if (uart_choose_uart5) {
 										Uart_sendstring(UART5, buffer_0x05);
 									}
+				                    if (uart_choose_usart2) {
+				                    	Uart_sendstring(USART2, buffer_0x05);
+				                    }
 									Uart_sendstring(USART6, buffer_0x05);
 
 						}
@@ -742,6 +781,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 									if (uart_choose_uart5) {
 										Uart_sendstring(UART5, buffer_0x06);
 									}
+				                    if (uart_choose_usart2) {
+				                    	Uart_sendstring(USART2, buffer_0x06);
+				                    }
 									Uart_sendstring(USART6, buffer_0x06);
 
 						}
@@ -793,6 +835,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 					if (uart_choose_uart5) {
 						Uart_sendstring(UART5, "\nIOU_ACK\r\n> ");
 					}
+                    if (uart_choose_usart2) {
+                    	Uart_sendstring(USART2, "\nIOU_ACK\r\n> ");
+                    }
 					Uart_sendstring(USART6, "\nIOU_ACK\r\n> ");
 
 					break;
@@ -808,6 +853,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x00);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x00);
+		                    }
 							Uart_sendstring(USART6, buffer_0x00);
 
 						}
@@ -819,6 +867,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0xFF);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0xFF);
+		                    }
 							Uart_sendstring(USART6, buffer_0xFF);
 
 						}
@@ -836,6 +887,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x02);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x02);
+		                    }
 							Uart_sendstring(USART6, buffer_0x02);
 
 						}
@@ -852,6 +906,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x03);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x03);
+		                    }
 							Uart_sendstring(USART6, buffer_0x03);
 
 						}
@@ -870,6 +927,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x0E);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x0E);
+		                    }
 							Uart_sendstring(USART6, buffer_0x0E);
 
 						}
@@ -885,6 +945,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x10);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x10);
+		                    }
 							Uart_sendstring(USART6, buffer_0x10);
 
 						}
@@ -906,6 +969,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x11);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x11);
+		                    }
 							Uart_sendstring(USART6, buffer_0x11);
 
 						}
@@ -920,6 +986,9 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x12);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x12);
+		                    }
 							Uart_sendstring(USART6, buffer_0x12);
 
 						}
@@ -954,8 +1023,18 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 
 							uint8_t ir_led_duty = fsp_pkt->payload[35];
 
+						    int16_t accel_x = (int16_t)((fsp_pkt->payload[36] << 8) | fsp_pkt->payload[37]);
+						    int16_t accel_y = (int16_t)((fsp_pkt->payload[38] << 8) | fsp_pkt->payload[39]);
+						    int16_t accel_z = (int16_t)((fsp_pkt->payload[40] << 8) | fsp_pkt->payload[41]);
 
-							char buffer_0x13[1000];
+						    int16_t gyro_x = (int16_t)((fsp_pkt->payload[42] << 8) | fsp_pkt->payload[43]);
+						    int16_t gyro_y = (int16_t)((fsp_pkt->payload[44] << 8) | fsp_pkt->payload[45]);
+						    int16_t gyro_z = (int16_t)((fsp_pkt->payload[46] << 8) | fsp_pkt->payload[47]);
+
+						    int16_t press = (int16_t)((fsp_pkt->payload[48] << 8) | fsp_pkt->payload[49]);
+
+
+							char buffer_0x13[1200];
 
 							sprintf(buffer_0x13, "IOU_Res: CMDcode 0x13 [NTC Temp: Ch0=%s%d.%d, Ch1=%s%d.%d, Ch2=%s%d.%d, Ch3=%s%d.%d\n"
 							                     "OneWire Temp: Ch0=%s%d.%d, Ch1=%s%d.%d\n"
@@ -963,7 +1042,10 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							                     "Setpoint Temp: Ch0=%s%d.%d, Ch1=%s%d.%d, Ch2=%s%d.%d, Ch3=%s%d.%d\n"
 							                     "TEC Voltage: Ch0=%d.%02d, Ch1=%d.%02d, Ch2=%d.%02d, Ch3=%d.%02d\n"
 							                     "Neo LED: R=%u, G=%u, B=%u, W=%u\n"
-							                     "IR LED Duty: %u%%]\n",
+							                     "IR LED Duty: %u%%\n"
+									 	 	 	 "Accel: X=%d, Y=%d, Z=%d\n"
+									             "Gyro: X=%d, Y=%d, Z=%d\n"
+									             "Pressure: %d]\n",
 							        temp_ntc_channel0 < 0 ? "-" : "", abs(temp_ntc_channel0)/ 10, abs(temp_ntc_channel0) % 10,
 							        temp_ntc_channel1 < 0 ? "-" : "", abs(temp_ntc_channel1)/ 10, abs(temp_ntc_channel1) % 10,
 							        temp_ntc_channel2 < 0 ? "-" : "", abs(temp_ntc_channel2)/ 10, abs(temp_ntc_channel2) % 10,
@@ -980,10 +1062,17 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							        voltage_out_tec_channel2 / 100, voltage_out_tec_channel2 % 100,
 							        voltage_out_tec_channel3 / 100, voltage_out_tec_channel3 % 100,
 							        neo_led_r, neo_led_g, neo_led_b, neo_led_w,
-							        ir_led_duty);
+							        ir_led_duty, accel_x, accel_y, accel_z,
+						            gyro_x, gyro_y, gyro_z,
+						            press);
+
+
 							if (uart_choose_uart5) {
 								Uart_sendstring(UART5, buffer_0x13);
 							}
+		                    if (uart_choose_usart2) {
+		                    	Uart_sendstring(USART2, buffer_0x13);
+		                    }
 							Uart_sendstring(USART6, buffer_0x13);
 
 

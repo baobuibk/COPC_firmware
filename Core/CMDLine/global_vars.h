@@ -12,8 +12,12 @@ extern volatile uint8_t sendFlag;
 extern volatile uint8_t retryCount;
 
 extern volatile uint8_t uart_choose_uart5;
+extern volatile uint8_t uart_choose_usart2;
 extern volatile uint8_t rs422_report_enable;
 extern volatile uint8_t gps_report_enable;
+extern volatile uint8_t rf_report_enable;
+
+
 extern volatile uint8_t receive_iouFlag;
 extern volatile uint8_t receive_pduFlag;
 extern volatile uint8_t receive_pmuFlag;

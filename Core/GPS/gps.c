@@ -50,6 +50,7 @@ static void GPS_task_update(void)
 		{
 			rxData = Uart_read(USART3);
 			Uart_write(USART2, rxData);
+			Uart_write(USART6, rxData);
 		}
 	}
 }

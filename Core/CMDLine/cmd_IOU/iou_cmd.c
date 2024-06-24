@@ -301,6 +301,7 @@ void IOU_update_task(void) {
 //}
 
 volatile uint8_t uart_choose_uart5 = 0;
+volatile uint8_t uart_choose_usart2 = 0;
 
 int Cmd_iou_set_temp(int argc, char *argv[])
 {
@@ -330,6 +331,12 @@ int Cmd_iou_set_temp(int argc, char *argv[])
     	uart_choose_uart5 = 1;
     }else{
     	uart_choose_uart5 = 0;
+    }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
     }
 
     // Create the command payload
@@ -401,6 +408,13 @@ int Cmd_iou_get_temp(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
     uint8_t cmd  = CMD_CODE_GET_TEMP;
     uint8_t payload[2];
 
@@ -454,6 +468,14 @@ int Cmd_iou_temp_setpoint(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEMP_SETPOINT;
     uint8_t payload[1];
     payload[0] = channel;
@@ -503,6 +525,14 @@ int Cmd_iou_tec_ena(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEC_ENA;
     uint8_t payload[1];
     payload[0] = channel;
@@ -553,6 +583,12 @@ int Cmd_iou_tec_dis(int argc, char *argv[])
     	uart_choose_uart5 = 1;
     }else{
     	uart_choose_uart5 = 0;
+    }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
     }
 
     uint8_t cmd  = CMD_CODE_TEC_DIS;
@@ -606,6 +642,14 @@ int Cmd_iou_tec_ena_auto(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEC_ENA_AUTO;
     uint8_t payload[1];
     payload[0] = channel;
@@ -655,6 +699,14 @@ int Cmd_iou_tec_dis_auto(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEC_DIS_AUTO;
     uint8_t payload[1];
     payload[0] = channel;
@@ -712,6 +764,14 @@ int Cmd_iou_tec_set_output(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEC_SET_OUTPUT;
     uint8_t payload[4];
     payload[0] = channel;
@@ -768,6 +828,14 @@ int Cmd_iou_tec_auto_vol(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEC_AUTO_VOL;
     uint8_t payload[3];
     payload[0] = channel;
@@ -818,6 +886,14 @@ int Cmd_iou_tec_status(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEC_STATUS;
     fsp_packet_t fsp_pkt;
 
@@ -863,6 +939,14 @@ int Cmd_iou_tec_log_ena(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEC_LOG_ENA;
     fsp_packet_t fsp_pkt;
 
@@ -909,6 +993,14 @@ int Cmd_iou_tec_log_dis(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_TEC_LOG_DIS;
     fsp_packet_t fsp_pkt;
 
@@ -964,6 +1056,14 @@ int Cmd_iou_ringled_setRGB(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_RINGLED_SETRGB;
     uint8_t payload[4];
 
@@ -1017,6 +1117,13 @@ int Cmd_iou_ringled_getRGB(int argc, char *argv[])
     	uart_choose_uart5 = 0;
     }
 
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_RINGLED_GETRGB;
 
     fsp_packet_t fsp_pkt;
@@ -1065,6 +1172,14 @@ int Cmd_iou_irled_set_bright(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_IRLED_SET_BRIGHT;
     uint8_t payload[1];
 
@@ -1113,6 +1228,14 @@ int Cmd_iou_irled_get_bright(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_IRLED_GET_BRIGHT;
     fsp_packet_t fsp_pkt;
 
@@ -1160,6 +1283,14 @@ int Cmd_iou_get_accel(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_GET_ACCEL_GYRO;
     fsp_packet_t fsp_pkt;
 
@@ -1207,6 +1338,14 @@ int Cmd_iou_get_press(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_GET_PRESS;
     fsp_packet_t fsp_pkt;
 
@@ -1255,6 +1394,14 @@ int Cmd_iou_get_parameters(int argc, char *argv[])
     }else{
     	uart_choose_uart5 = 0;
     }
+
+    if (USARTx == USART2) {
+    	uart_choose_usart2 = 1;
+    }else{
+    	uart_choose_usart2 = 0;
+    }
+
+
     uint8_t cmd  = CMD_CODE_GET_PARAMETERS;
     fsp_packet_t fsp_pkt;
 

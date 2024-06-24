@@ -130,13 +130,13 @@ void RS422_periodic_task(void) {
 
 			count_packet = 0;
 
-			for (int i = 121; i <= 146; i++) {
-				nextBuffer[i] = i - 121;
+			for (int i = 135; i <= 160; i++) {
+				nextBuffer[i] = i - 135;
 			}
 
 
-			for (int i = 147; i <= ARRAY_SIZE-2; i++) {
-				nextBuffer[i] = i - 147;
+			for (int i = 161; i <= ARRAY_SIZE-2; i++) {
+				nextBuffer[i] = i - 161;
 			}
 
 
@@ -185,8 +185,13 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 	{
 		case 0x08:
 	    {
-			if(!auto_report_enabled){
-				Uart_sendstring(USART6, "\nPMU:\n");
+			if(auto_report_enabled || rf_report_enable){
+				if(auto_report_enabled){
+					Uart_sendstring(USART6, "\nPMU:\n");
+				}else{
+					Uart_sendstring(USART2, "\nPMU:\n");
+				}
+
 				int16_t ntc0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
 				int16_t ntc1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
 				int16_t ntc2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
@@ -213,12 +218,17 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 						bat2 / 100, bat2 % 100, bat3 / 100, bat3 % 100,
 						vin / 100, vin % 100, iin / 100, iin % 100,
 						vout / 100, vout % 100, iout / 100, iout % 100);
-				Uart_sendstring(USART6, buffer_0x08);
+
+				if(auto_report_enabled){
+					Uart_sendstring(USART6, buffer_0x08);
+				}else{
+					Uart_sendstring(USART2, buffer_0x08);
+				}
 			}
 			receive_pmuFlag = 1;
 
 			for (int i = 1; i <= 24; i++) {
-			    nextBuffer[i + 96] = fsp_pkt->payload[i]; //97   pay1    + 98 pay2    120    pay24
+			    nextBuffer[i + 110] = fsp_pkt->payload[i]; //97   pay1    + 98 pay2    120    pay24
 			}
 //			Uart_sendstring(USART6, "\nPMU_Collected\r\n");
 
@@ -229,8 +239,12 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 		case 0x06:
 		{
-			if(!auto_report_enabled){
-				Uart_sendstring(USART6, "\nPDU:\n");
+			if(auto_report_enabled || rf_report_enable){
+				if(auto_report_enabled){
+					Uart_sendstring(USART6, "\nPDU:\n");
+				}else{
+					Uart_sendstring(USART2, "\nPDU:\n");
+				}
 				uint8_t tec1buck_status = fsp_pkt->payload[1];
 				uint16_t tec1buck_voltage = (fsp_pkt->payload[2] << 8) | fsp_pkt->payload[3];
 
@@ -307,13 +321,18 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 							vin_status, vin_voltage,
 							vbus_status, vbus_voltage);
 
-						Uart_sendstring(USART6, buffer_0x06);
+
+					if(auto_report_enabled){
+							Uart_sendstring(USART6, buffer_0x06);
+					}else{
+							Uart_sendstring(USART2, buffer_0x06);
+					}
 			}
 
 					receive_pduFlag = 1;
 
 					for (int i = 1; i <= 54; i++) {
-					    nextBuffer[i + 42] = fsp_pkt->payload[i]; //43   pay1    + 44  pay2        96-<54
+					    nextBuffer[i + 56] = fsp_pkt->payload[i]; //43   pay1    + 44  pay2        96-<54
 					}
 //					Uart_sendstring(USART6, "\nPDU_Collected\r\n");
 
@@ -324,8 +343,13 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 		case 0x13:
 		{
-			if(!auto_report_enabled){
-			Uart_sendstring(USART6, "\nIOU:\n");
+			if(auto_report_enabled || rf_report_enable){
+				if(auto_report_enabled){
+					Uart_sendstring(USART6, "\nIOU:\n");
+				}else{
+					Uart_sendstring(USART2, "\nIOU:\n");
+				}
+
 			int16_t temp_ntc_channel0 = (int16_t)((fsp_pkt->payload[1] << 8) | fsp_pkt->payload[2]);
 			int16_t temp_ntc_channel1 = (int16_t)((fsp_pkt->payload[3] << 8) | fsp_pkt->payload[4]);
 			int16_t temp_ntc_channel2 = (int16_t)((fsp_pkt->payload[5] << 8) | fsp_pkt->payload[6]);
@@ -353,14 +377,28 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 			uint8_t ir_led_duty = fsp_pkt->payload[35];
 
-			char buffer_0x13[1000];
+		    int16_t accel_x = (int16_t)((fsp_pkt->payload[36] << 8) | fsp_pkt->payload[37]);
+		    int16_t accel_y = (int16_t)((fsp_pkt->payload[38] << 8) | fsp_pkt->payload[39]);
+		    int16_t accel_z = (int16_t)((fsp_pkt->payload[40] << 8) | fsp_pkt->payload[41]);
+
+		    int16_t gyro_x = (int16_t)((fsp_pkt->payload[42] << 8) | fsp_pkt->payload[43]);
+		    int16_t gyro_y = (int16_t)((fsp_pkt->payload[44] << 8) | fsp_pkt->payload[45]);
+		    int16_t gyro_z = (int16_t)((fsp_pkt->payload[46] << 8) | fsp_pkt->payload[47]);
+
+		    int16_t press = (int16_t)((fsp_pkt->payload[48] << 8) | fsp_pkt->payload[49]);
+
+
+			char buffer_0x13[1200];
 			sprintf(buffer_0x13, "IOU_Res: CMDcode 0x13 [NTC Temp: Ch0=%s%d.%d, Ch1=%s%d.%d, Ch2=%s%d.%d, Ch3=%s%d.%d\n"
 			                     "OneWire Temp: Ch0=%s%d.%d, Ch1=%s%d.%d\n"
 			                     "Sensor Temp: %s%d.%d\n"
 			                     "Setpoint Temp: Ch0=%s%d.%d, Ch1=%s%d.%d, Ch2=%s%d.%d, Ch3=%s%d.%d\n"
 			                     "TEC Voltage: Ch0=%d.%02d, Ch1=%d.%02d, Ch2=%d.%02d, Ch3=%d.%02d\n"
 			                     "Neo LED: R=%u, G=%u, B=%u, W=%u\n"
-			                     "IR LED Duty: %u%%]\n",
+			                     "IR LED Duty: %u%%\n"
+					 	 	 	 "Accel: X=%d, Y=%d, Z=%d\n"
+					             "Gyro: X=%d, Y=%d, Z=%d\n"
+					             "Pressure: %d]\n",
 			        temp_ntc_channel0 < 0 ? "-" : "", abs(temp_ntc_channel0)/ 10, abs(temp_ntc_channel0) % 10,
 			        temp_ntc_channel1 < 0 ? "-" : "", abs(temp_ntc_channel1)/ 10, abs(temp_ntc_channel1) % 10,
 			        temp_ntc_channel2 < 0 ? "-" : "", abs(temp_ntc_channel2)/ 10, abs(temp_ntc_channel2) % 10,
@@ -377,13 +415,22 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 			        voltage_out_tec_channel2 / 100, voltage_out_tec_channel2 % 100,
 			        voltage_out_tec_channel3 / 100, voltage_out_tec_channel3 % 100,
 			        neo_led_r, neo_led_g, neo_led_b, neo_led_w,
-			        ir_led_duty);
+			        ir_led_duty, accel_x, accel_y, accel_z,
+		            gyro_x, gyro_y, gyro_z,
+		            press);
 
-			Uart_sendstring(USART6, buffer_0x13);
+			if(auto_report_enabled){
+				Uart_sendstring(USART6, buffer_0x13);
+			}else{
+				Uart_sendstring(USART2, buffer_0x13);
+			}
+
+
+
 			}
 			receive_iouFlag = 1;
 
-			for (int i = 1; i <= 35; i++) {
+			for (int i = 1; i <= 49; i++) {
 					    nextBuffer[i + 7] = fsp_pkt->payload[i]; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
 			}
 //			Uart_sendstring(USART6, "\nIOU_Collected\r\n");
@@ -396,6 +443,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 		default:
 			Uart_sendstring(USART6, "Failed to get all");
+			Uart_sendstring(USART2, "Failed to get all");
 			break;
 	}
 

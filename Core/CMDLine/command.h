@@ -34,6 +34,7 @@ int Cmd_memory_usage(int argc, char *argv[]);
 int Cmd_auto_report_ena(int argc, char *argv[]);
 //int Cmd_auto_report_dis(int argc, char *argv[]);
 int Cmd_rs422_report_ena(int argc, char *argv[]);
+int Cmd_rf_report_ena(int argc, char *argv[]);
 int Cmd_set_byte_rs422(int argc, char *argv[]);
 int Cmd_swap_byte_dis(int argc, char *argv[]);
 int Cmd_swap_byte_ena(int argc, char *argv[]);

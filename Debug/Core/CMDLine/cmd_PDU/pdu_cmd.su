@@ -2,8 +2,8 @@
 ../Core/CMDLine/cmd_PDU/pdu_cmd.c:45:6:PDU_create_task	8	static
 ../Core/CMDLine/cmd_PDU/pdu_cmd.c:55:6:PDU_update_task	24	static
 ../Core/CMDLine/cmd_PDU/pdu_cmd.c:107:5:Cmd_pdu_set_channel	560	static
-../Core/CMDLine/cmd_PDU/pdu_cmd.c:163:5:Cmd_pdu_set_buck	560	static
-../Core/CMDLine/cmd_PDU/pdu_cmd.c:218:5:Cmd_pdu_set_all	560	static
-../Core/CMDLine/cmd_PDU/pdu_cmd.c:270:5:Cmd_pdu_get_channel	560	static
-../Core/CMDLine/cmd_PDU/pdu_cmd.c:322:5:Cmd_pdu_get_buck	560	static
-../Core/CMDLine/cmd_PDU/pdu_cmd.c:374:5:Cmd_pdu_get_all	544	static
+../Core/CMDLine/cmd_PDU/pdu_cmd.c:171:5:Cmd_pdu_set_buck	560	static
+../Core/CMDLine/cmd_PDU/pdu_cmd.c:234:5:Cmd_pdu_set_all	560	static
+../Core/CMDLine/cmd_PDU/pdu_cmd.c:294:5:Cmd_pdu_get_channel	560	static
+../Core/CMDLine/cmd_PDU/pdu_cmd.c:354:5:Cmd_pdu_get_buck	560	static
+../Core/CMDLine/cmd_PDU/pdu_cmd.c:414:5:Cmd_pdu_get_all	544	static

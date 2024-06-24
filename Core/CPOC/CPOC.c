@@ -105,6 +105,7 @@ static void COPC_task_update(void)
                         sprintf(error_msg, "Error: %s\r\n", decode_error_msgs[ret]);
                         Uart_sendstring(UART5, error_msg);
                         Uart_sendstring(USART6, error_msg);
+                        Uart_sendstring(USART2, error_msg);
                     }
                 }
 

@@ -46,8 +46,9 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"help_iou", Cmd_help_iou,": Display list of IOU commands | format: help_iou" },
 								{"splash", Cmd_splash,": Splash screen again | format: splash" },
 								{"status_now", Cmd_status_now,": Display <Date&Time>, <Temp> *C, <HardwareVer>, <FirmwareVer>, <Enable>, <Mode> | format: status_now" },
-								{"auto_report_ena", Cmd_auto_report_ena,": Enable Mirror 282 byte to Text as Debug Port | format: auto_report_ena" },
+								{"auto_report_ena", Cmd_auto_report_ena,": Enable Mirror 282 byte to Text as Debug Port [ESC] | format: auto_report_ena" },
 								{"rs422_report_ena", Cmd_rs422_report_ena,": Report 282 byte packet to RS422, [ESC] to stop | format: rs422_report_ena" },
+								{"rf_report_ena", Cmd_rf_report_ena,": Enable Mirror 282 byte to Text as Debug Port [ESC] | format: rf_report_ena" },
 								{"set_byte_rs422", Cmd_set_byte_rs422, ": Set Size of packet RS422, Default 282 (150<x<1000) | format: set_byte_rs422 <size>"},
 								{"swap_byte_ena", Cmd_swap_byte_ena, ": Enable swap byte RS422, 0x02->0xFE, 0x03->0xFD | format: swap_byte_ena"},
 								{"swap_byte_dis", Cmd_swap_byte_dis, ": Disable swap byte RS422 | format: swap_byte_dis"},
@@ -173,15 +174,18 @@ void	command_init(void)
 	memset((void *)s_commandBuffer, 0, sizeof(s_commandBuffer));
 	s_commandBufferIndex = 0;
 	Uart_sendstring(UART5,"\r\n");
-	Uart_sendstring(UART5,"\r\n");
 	Uart_sendstring(UART5,"> CPOC FIRMWARE V1.2.0 \r\n");
 	Uart_sendstring(UART5,"\r\n");
-	command_send_splash();
 
-    Uart_sendstring(USART6, "\r\n");
     Uart_sendstring(USART6, "\r\n");
     Uart_sendstring(USART6, "> CPOC FIRMWARE V1.2.0 \r\n");
     Uart_sendstring(USART6, "\r\n");
+
+    Uart_sendstring(USART2, "b");
+    Uart_sendstring(USART2, "\r\n");
+    Uart_sendstring(USART2, "> CPOC FIRMWARE V1.2.0 \r\n");
+    Uart_sendstring(USART2, "\r\n");
+
     command_send_splash();
 
 	tCmdLineEntry *pEntry;
@@ -191,6 +195,8 @@ void	command_init(void)
 	Uart_sendstring(UART5, "-------------------------------------\r\n");
     Uart_sendstring(USART6, "\nStart with <help_xxxx> command\r\n");
     Uart_sendstring(USART6, "-------------------------------------\r\n");
+    Uart_sendstring(USART2, "\nStart with <help_xxxx> command\r\n");
+    Uart_sendstring(USART2, "-------------------------------------\r\n");
 
 	pEntry = &g_psCmdTable[0];
 
@@ -203,6 +209,10 @@ void	command_init(void)
         Uart_sendstring(USART6, pEntry->pcHelp);
         Uart_sendstring(USART6, "\r\n");
 
+        Uart_sendstring(USART2, pEntry->pcCmd);
+        Uart_sendstring(USART2, pEntry->pcHelp);
+        Uart_sendstring(USART2, "\r\n");
+
 	    if (pEntry == &g_psCmdTable[12]) {
 	        break;
 	    }
@@ -211,7 +221,7 @@ void	command_init(void)
 
 	Uart_sendstring(UART5, "\r\n> ");
     Uart_sendstring(USART6, "\r\n> ");
-
+    Uart_sendstring(USART2, "\r\n> ");
 }
 
 volatile uint8_t auto_report_enabled = 0;
@@ -224,7 +234,7 @@ static void command_task_update(void)
     char rxData;
 
 
-    while (IsDataAvailable(UART5) || IsDataAvailable(USART6))
+    while (IsDataAvailable(UART5) || IsDataAvailable(USART6) || IsDataAvailable(USART2))
     {
         if (IsDataAvailable(UART5)) {
             rxData = Uart_read(UART5);
@@ -237,6 +247,12 @@ static void command_task_update(void)
             Uart_write(USART6, rxData);
             process_command(USART6, rxData);
         }
+
+        if (IsDataAvailable(USART2)) {
+            rxData = Uart_read(USART2);
+            Uart_write(USART2, rxData);
+            process_command(USART2, rxData);
+        }
     }
 }
 
@@ -247,6 +263,7 @@ void process_command(USART_TypeDef* USARTx, char rxData)
     {
     	auto_report_enabled = 0;
         rs422_report_enable = 0;
+        rf_report_enable = 0;
         gps_report_enable = 0;
         return;
     }
@@ -620,6 +637,23 @@ int Cmd_rs422_report_ena(int argc, char *argv[])
     return CMDLINE_OK;
 }
 
+volatile uint8_t rf_report_enable = 0;
+int Cmd_rf_report_ena(int argc, char *argv[])
+{
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+
+    rf_report_enable = 1;
+ // Convert seconds to milliseconds
+
+    char msg[50];
+    sprintf(msg, "\nAuto report RS422, [ESC] to Stop\n");
+    Uart_sendstring(USARTx, msg);
+    return CMDLINE_OK;
+}
+
+
 volatile uint8_t swap_byte_enable = 0;
 
 int Cmd_swap_byte_ena(int argc, char *argv[])
@@ -704,7 +738,7 @@ int Cmd_time_set(int argc, char *argv[]){
     DS3231_SetDateTime(1, date, month, year, hour, min, sec);
 
     char buffer[100];
-    sprintf(buffer, "Time set to: %02d:%02d:%02d %02d/%02d/%04d\r\n", hour, min, sec, date, month, 2000 + year);
+    sprintf(buffer, "\nTime set to: %02d:%02d:%02d %02d/%02d/%04d\r\n", hour, min, sec, date, month, 2000 + year);
     Uart_sendstring(USARTx, buffer);
 
 	// Return success.
@@ -794,10 +828,13 @@ void	command_send_splash(void)
 	Uart_sendstring(USART6, "--           \\ V / | || |_| | |_| |           -- \r\n");
 	Uart_sendstring(USART6, "--            \\_/  |_(_)___(_)___/            -- \r\n");
     Uart_sendstring(USART6, "------------------------------------------------\r\n");
-
 	Uart_sendstring(USART6, "> ");
 
 	Uart_sendstring(UART5, "\r\n");
 	Uart_sendstring(UART5, ">>>>> CPOC V1.2.0 RS422 <<<<<\r\n");
 	Uart_sendstring(UART5, "> ");
+
+	Uart_sendstring(USART2, "\r\n");
+	Uart_sendstring(USART2, ">>>>> CPOC V1.2.0 XBEE RF <<<<<\r\n");
+	Uart_sendstring(USART2, "> ");
 }

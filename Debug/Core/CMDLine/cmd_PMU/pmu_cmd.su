@@ -3,10 +3,10 @@
 ../Core/CMDLine/cmd_PMU/pmu_cmd.c:44:6:PMU_create_task	8	static
 ../Core/CMDLine/cmd_PMU/pmu_cmd.c:56:6:PMU_update_task	24	static
 ../Core/CMDLine/cmd_PMU/pmu_cmd.c:107:5:Cmd_pmu_get_temp	544	static
-../Core/CMDLine/cmd_PMU/pmu_cmd.c:153:5:Cmd_pmu_bat_vol	544	static
-../Core/CMDLine/cmd_PMU/pmu_cmd.c:199:5:Cmd_pmu_parag_in	544	static
-../Core/CMDLine/cmd_PMU/pmu_cmd.c:246:5:Cmd_pmu_parag_out	544	static
-../Core/CMDLine/cmd_PMU/pmu_cmd.c:292:5:Cmd_pmu_set_temppoint	560	static
-../Core/CMDLine/cmd_PMU/pmu_cmd.c:349:5:Cmd_pmu_set_output	560	static
-../Core/CMDLine/cmd_PMU/pmu_cmd.c:403:5:Cmd_pmu_set_pwm	560	static
-../Core/CMDLine/cmd_PMU/pmu_cmd.c:456:5:Cmd_pmu_get_all	544	static
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:161:5:Cmd_pmu_bat_vol	544	static
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:215:5:Cmd_pmu_parag_in	544	static
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:270:5:Cmd_pmu_parag_out	544	static
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:324:5:Cmd_pmu_set_temppoint	560	static
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:386:5:Cmd_pmu_set_output	560	static
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:448:5:Cmd_pmu_set_pwm	560	static
+../Core/CMDLine/cmd_PMU/pmu_cmd.c:509:5:Cmd_pmu_get_all	544	static
