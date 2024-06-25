@@ -26,7 +26,7 @@
 ../Core/CMDLine/command.c:724:5:Cmd_time_set	9
 ../Core/CMDLine/command.c:748:5:Cmd_cpoc_reset	0
 ../Core/CMDLine/command.c:774:5:Cmd_rf_ena	1
-../Core/CMDLine/command.c:782:5:Cmd_rf_dis	1
-../Core/CMDLine/command.c:791:5:Cmd_start_positioining	1
-../Core/CMDLine/command.c:800:6:command_create_task	1
-../Core/CMDLine/command.c:805:6:command_send_splash	1
+../Core/CMDLine/command.c:783:5:Cmd_rf_dis	1
+../Core/CMDLine/command.c:792:5:Cmd_start_positioining	1
+../Core/CMDLine/command.c:801:6:command_create_task	1
+../Core/CMDLine/command.c:806:6:command_send_splash	1

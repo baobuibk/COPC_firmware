@@ -181,7 +181,7 @@ void	command_init(void)
     Uart_sendstring(USART6, "> CPOC FIRMWARE V1.2.0 \r\n");
     Uart_sendstring(USART6, "\r\n");
 
-    Uart_sendstring(USART2, "b");
+    Uart_sendstring(USART2, "B");
     Uart_sendstring(USART2, "\r\n");
     Uart_sendstring(USART2, "> CPOC FIRMWARE V1.2.0 \r\n");
     Uart_sendstring(USART2, "\r\n");
@@ -776,6 +776,7 @@ int Cmd_rf_ena(int argc, char *argv[]){
 	LL_GPIO_ResetOutputPin(ENABLE_RF_GPIO_Port, ENABLE_RF_Pin);
 	 Uart_sendstring(USARTx, "\nRF Set to Enable\r\n");
 	// Return success.
+	Uart_sendstring(USART2, "B");
 	return (CMDLINE_OK);
 }
 
