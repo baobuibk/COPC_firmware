@@ -20,6 +20,9 @@
 #include "main.h"
 #include "global_vars.h"
 
+
+#include "stm32f4xx_ll_rcc.h"
+
 #define SRAM1_BASE 0x20000000UL      // SRAM1(112 KB)
 #define SRAM2_BASE 0x2001C000UL      // SRAM2(16 KB)
 #define FLASH_BASE 0x08000000UL      // FLASH
@@ -50,6 +53,7 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"rs422_report_ena", Cmd_rs422_report_ena,": Report 282 byte packet to RS422, [ESC] to stop | format: rs422_report_ena" },
 								{"rf_report_ena", Cmd_rf_report_ena,": Enable Mirror 282 byte to Text as Debug Port [ESC] | format: rf_report_ena" },
 								{"set_byte_rs422", Cmd_set_byte_rs422, ": Set Size of packet RS422, Default 282 (150<x<1000) | format: set_byte_rs422 <size>"},
+								{"set_baud_rs422", Cmd_set_baudrate_rs422, ": [9600|19200|38400|115200|230400|460800], Default 115200 | format: set_baud_rs422 <baudrate>"},
 								{"swap_byte_ena", Cmd_swap_byte_ena, ": Enable swap byte RS422, 0x02->0xFE, 0x03->0xFD | format: swap_byte_ena"},
 								{"swap_byte_dis", Cmd_swap_byte_dis, ": Disable swap byte RS422 | format: swap_byte_dis"},
 								{"memory_usage", Cmd_memory_usage, ": %RAM and %FLASH Used | format: memory_usage"},
@@ -605,6 +609,44 @@ int Cmd_set_byte_rs422(int argc, char *argv[])
 
 
 
+int Cmd_set_baudrate_rs422(int argc, char *argv[])
+{
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+
+//	{"set_baudrate_rs422", Cmd_set_baudrate_rs422, ": [9600|19200|38400|115200|230400|460800], Default 115200 | format: set_baudrate_rs422 <size>"},
+
+
+    uint32_t baudrate = atoi(argv[1]);
+
+    if (baudrate != 9600 && baudrate != 19200 && baudrate != 38400 &&
+        baudrate != 115200 && baudrate != 230400 && baudrate != 460800) {
+        Uart_sendstring(USARTx, "\n Allowed Baudrates: [9600|19200|38400|115200|230400|460800]\n");
+        return CMDLINE_INVALID_ARG;
+    }
+
+    // Disable UART5
+    LL_USART_Disable(UART5);
+
+    LL_RCC_ClocksTypeDef rcc_clocks;
+    LL_RCC_GetSystemClocksFreq(&rcc_clocks);
+    // Configure baudrate
+    LL_USART_SetBaudRate(UART5, rcc_clocks.PCLK1_Frequency, LL_USART_OVERSAMPLING_16, baudrate);
+
+    // Enable UART5
+    LL_USART_Enable(UART5);
+
+	Uart_flush(UART5);
+
+    char msg[50];
+    sprintf(msg, "\nRS422 Baudrate set to  %ld.\n", baudrate);
+    Uart_sendstring(USARTx, msg);
+    return CMDLINE_OK;
+}
+
+
+
 int Cmd_auto_report_ena(int argc, char *argv[])
 {
     if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
@@ -630,6 +672,7 @@ int Cmd_rs422_report_ena(int argc, char *argv[])
 
     rs422_report_enable = 1;
  // Convert seconds to milliseconds
+    Uart_flush(USART1);
 
     char msg[50];
     sprintf(msg, "\nAuto report RS422, [ESC] to Stop\n");
@@ -648,7 +691,7 @@ int Cmd_rf_report_ena(int argc, char *argv[])
  // Convert seconds to milliseconds
 
     char msg[50];
-    sprintf(msg, "\nAuto report RS422, [ESC] to Stop\n");
+    sprintf(msg, "\nAuto report RF, [ESC] to Stop\n");
     Uart_sendstring(USARTx, msg);
     return CMDLINE_OK;
 }
@@ -792,6 +835,7 @@ volatile uint8_t gps_report_enable = 0;
 int Cmd_start_positioining (int argc, char *argv[]){
 	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
 	gps_report_enable = 1;
+	Uart_flush(USART3);
 	Uart_sendstring(USARTx, "\nStart reporting position to RF, [ESC] to Stop\r\n");
 	// Return success.
 	return (CMDLINE_OK);
