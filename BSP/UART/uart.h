@@ -11,15 +11,19 @@
 #include "stm32f4xx_ll_usart.h"
 
 /* change the size of the buffer */
-#define UART_BUFFER_SIZE 2048
+#define UART1_BUFFER_SIZE 8000
+#define UART2_BUFFER_SIZE 1000
+#define UART3_BUFFER_SIZE 200
+#define UART4_BUFFER_SIZE 1000
+#define UART5_BUFFER_SIZE 500
 
 typedef struct
 {
-  unsigned char buffer[UART_BUFFER_SIZE];
-  volatile unsigned int head;
-  volatile unsigned int tail;
+    unsigned char *buffer;
+    volatile unsigned int head;
+    volatile unsigned int tail;
+    unsigned int size;
 } ring_buffer;
-
 
 /* Initialize the ring buffer */
 void Ringbuf_init(void);

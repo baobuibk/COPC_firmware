@@ -765,7 +765,7 @@ int Cmd_rf_report_ena(int argc, char *argv[])
 }
 
 
-volatile uint8_t swap_byte_enable = 0;
+volatile uint8_t swap_byte_enable = 1;
 
 int Cmd_swap_byte_ena(int argc, char *argv[])
 {

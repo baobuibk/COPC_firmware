@@ -37,16 +37,29 @@ uint16_t timeout;
 extern void Uart_isr (USART_TypeDef *uart);
 extern uint16_t timeout;
 */
-ring_buffer rx_buffer1 = { { 0 }, 0, 0};
-ring_buffer tx_buffer1 = { { 0 }, 0, 0};
-ring_buffer rx_buffer2 = { { 0 }, 0, 0};
-ring_buffer tx_buffer2 = { { 0 }, 0, 0};
-ring_buffer rx_buffer3 = { { 0 }, 0, 0};
-ring_buffer tx_buffer3 = { { 0 }, 0, 0};
-ring_buffer rx_buffer5 = { { 0 }, 0, 0};
-ring_buffer tx_buffer5 = { { 0 }, 0, 0};
-ring_buffer rx_buffer6 = { { 0 }, 0, 0};
-ring_buffer tx_buffer6 = { { 0 }, 0, 0};
+
+
+ring_buffer rx_buffer1 = { (unsigned char[UART1_BUFFER_SIZE]){0}, 0, 0, UART1_BUFFER_SIZE};
+ring_buffer tx_buffer1 = { (unsigned char[UART1_BUFFER_SIZE]){0}, 0, 0, UART1_BUFFER_SIZE};
+ring_buffer rx_buffer2 = { (unsigned char[UART2_BUFFER_SIZE]){0}, 0, 0, UART2_BUFFER_SIZE};
+ring_buffer tx_buffer2 = { (unsigned char[UART2_BUFFER_SIZE]){0}, 0, 0, UART2_BUFFER_SIZE};
+ring_buffer rx_buffer3 = { (unsigned char[UART3_BUFFER_SIZE]){0}, 0, 0, UART3_BUFFER_SIZE};
+ring_buffer tx_buffer3 = { (unsigned char[UART3_BUFFER_SIZE]){0}, 0, 0, UART3_BUFFER_SIZE};
+ring_buffer rx_buffer5 = { (unsigned char[UART5_BUFFER_SIZE]){0}, 0, 0, UART5_BUFFER_SIZE};
+ring_buffer tx_buffer5 = { (unsigned char[UART5_BUFFER_SIZE]){0}, 0, 0, UART5_BUFFER_SIZE};
+ring_buffer rx_buffer6 = { (unsigned char[UART4_BUFFER_SIZE]){0}, 0, 0, UART4_BUFFER_SIZE};
+ring_buffer tx_buffer6 = { (unsigned char[UART4_BUFFER_SIZE]){0}, 0, 0, UART4_BUFFER_SIZE};
+
+//ring_buffer rx_buffer1 = { { 0 }, 0, 0};
+//ring_buffer tx_buffer1 = { { 0 }, 0, 0};
+//ring_buffer rx_buffer2 = { { 0 }, 0, 0};
+//ring_buffer tx_buffer2 = { { 0 }, 0, 0};
+//ring_buffer rx_buffer3 = { { 0 }, 0, 0};
+//ring_buffer tx_buffer3 = { { 0 }, 0, 0};
+//ring_buffer rx_buffer5 = { { 0 }, 0, 0};
+//ring_buffer tx_buffer5 = { { 0 }, 0, 0};
+//ring_buffer rx_buffer6 = { { 0 }, 0, 0};
+//ring_buffer tx_buffer6 = { { 0 }, 0, 0};
 
 ring_buffer *_rx_buffer1;
 ring_buffer *_tx_buffer1;
@@ -91,7 +104,7 @@ void Ringbuf_init(void)
 
 void store_char(unsigned char c, ring_buffer *buffer)
 {
-  int i = (unsigned int)(buffer->head + 1) % UART_BUFFER_SIZE;
+  int i = (unsigned int)(buffer->head + 1) % buffer->size;
 
   if(i != buffer->tail) {
     ATOMIC_BLOCK_START(USART1)
@@ -140,7 +153,7 @@ int Uart_read(USART_TypeDef *uart)
   {
     ATOMIC_BLOCK_START(uart)
     unsigned char c = _rx_buffer->buffer[_rx_buffer->tail];
-    _rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % UART_BUFFER_SIZE;
+    _rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % _rx_buffer->size;
     ATOMIC_BLOCK_END(uart)
     return c;
   }
@@ -169,7 +182,7 @@ void Uart_write(USART_TypeDef *uart, int c)
 
   if (c >= 0)
   {
-    int i = (_tx_buffer->head + 1) % UART_BUFFER_SIZE;
+    int i = (_tx_buffer->head + 1) % _tx_buffer->size;
 
     ATOMIC_BLOCK_START(uart)
     while (i == _tx_buffer->tail);
@@ -221,7 +234,7 @@ int IsDataAvailable(USART_TypeDef *uart)
 	      break;
 	  }
 
-  return (uint16_t)(UART_BUFFER_SIZE + _rx_buffer->head - _rx_buffer->tail) % UART_BUFFER_SIZE;
+	  return (uint16_t)(_rx_buffer->size + _rx_buffer->head - _rx_buffer->tail) % _rx_buffer->size;
 }
 
 /* sends the string to the uart
@@ -312,7 +325,7 @@ void Uart_flush (USART_TypeDef *uart)
 	      break;
 	  }
 
-	  memset(_rx_buffer->buffer,'\0', UART_BUFFER_SIZE);
+	  memset(_rx_buffer->buffer,'\0', _rx_buffer->size);
 	  _rx_buffer->head = 0;
 	  _rx_buffer->tail = 0;
 }
@@ -378,7 +391,7 @@ again:
 	while (Uart_peek(uart) != string[so_far])
 		{
 			buffertocopyinto[indx] = _rx_buffer->buffer[_rx_buffer->tail];
-			_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % UART_BUFFER_SIZE;
+			_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % _rx_buffer->size;
 			indx++;
 			while (!IsDataAvailable(uart));
 
@@ -447,7 +460,7 @@ again:
 	{
 		if (_rx_buffer->tail != _rx_buffer->head)
 		{
-			_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % UART_BUFFER_SIZE;  // increment the tail
+			_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % _rx_buffer->size;  // increment the tail
 		}
 
 		else
@@ -459,7 +472,7 @@ again:
 	{
 		// now we will peek for the other letters too
 		so_far++;
-		_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % UART_BUFFER_SIZE;  // increment the tail
+		_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % _rx_buffer->size;  // increment the tail
 		if (so_far == len) return 1;
 		timeout = TIMEOUT_DEF;
 		while ((!IsDataAvailable(uart))&&timeout);
@@ -543,7 +556,7 @@ void Uart_isr (USART_TypeDef *uart)
         {
           // There is more data in the output buffer. Send the next byte
           unsigned char c = _tx_buffer->buffer[_tx_buffer->tail];
-          _tx_buffer->tail = (_tx_buffer->tail + 1) % UART_BUFFER_SIZE;
+          _tx_buffer->tail = (_tx_buffer->tail + 1) % _tx_buffer->size;
 
           LL_USART_TransmitData8(uart, c);
         }

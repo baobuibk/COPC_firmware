@@ -5,6 +5,6 @@
 ../Core/LED/status_led.c:74:13:status_led_off	8	static
 ../Core/LED/status_led.c:80:13:status_led_on	8	static
 ../Core/LED/status_led.c:86:6:status_led_update	8	static
-../Core/LED/status_led.c:103:13:status_led_powerup	32	static
-../Core/LED/status_led.c:174:13:status_led_normal	4	static
-../Core/LED/status_led.c:196:6:status_led_create_task	8	static
+../Core/LED/status_led.c:105:13:status_led_powerup	32	static
+../Core/LED/status_led.c:184:13:status_led_normal	4	static
+../Core/LED/status_led.c:206:6:status_led_create_task	8	static

@@ -100,6 +100,8 @@ void	status_led_update(void)
 }
 
 int count = 0;
+int count_ena = 0;
+int xflag = 1;
 static void status_led_powerup(void)
 {
     if (s_led_display_status.led == 1) // LED is ON
@@ -117,6 +119,14 @@ static void status_led_powerup(void)
 					count =0;
 				}
 
+            }
+            count_ena++;
+            if(count_ena>3 || rs422_report_enable){
+            	count_ena = 0;
+            	if((!(rs422_report_enable)) && xflag){
+            		rs422_report_enable = 1;
+            	}
+            	xflag = 0;
             }
 //            command_send_splash();
 //
