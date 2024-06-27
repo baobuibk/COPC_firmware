@@ -23,7 +23,8 @@ Core/LED/status_led.o: ../Core/LED/status_led.c ../Core/LED/status_led.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_utils.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_dma.h \
- ../Core/LED/../../BSP/RTC/ds3231.h
+ ../Core/LED/../../BSP/RTC/ds3231.h \
+ ../Core/LED/../../Core/CMDLine/global_vars.h
 ../Core/LED/status_led.h:
 ../Core/LED/../../Scheduler/scheduler.h:
 ../Core/LED/../../Scheduler/../Core/Common/basetypedef.h:
@@ -51,3 +52,4 @@ Core/LED/status_led.o: ../Core/LED/status_led.c ../Core/LED/status_led.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_pwr.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_dma.h:
 ../Core/LED/../../BSP/RTC/ds3231.h:
+../Core/LED/../../Core/CMDLine/global_vars.h:

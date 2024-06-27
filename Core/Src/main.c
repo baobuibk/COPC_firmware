@@ -37,6 +37,7 @@
 #include "../CMDLine/cmd_PMU/PMU_cmd.h"
 #include "../CMDLine/cmd_PDU/PDU_cmd.h"
 #include "../GPS/gps.h"
+#include "../IMG_I2C/img_i2c.h"
 
 /* USER CODE END Includes */
 
@@ -157,6 +158,8 @@ int main(void)
   PDU_create_task();
   rs422_create_task();
   GPS_create_task();
+  I2C_img_create_task();
+
   SCH_StartSchedular();
   /* USER CODE END 2 */
 
@@ -311,6 +314,12 @@ static void MX_I2C3_Init(void)
   /* Peripheral clock enable */
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C3);
 
+  /* I2C3 interrupt Init */
+  NVIC_SetPriority(I2C3_EV_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_EnableIRQ(I2C3_EV_IRQn);
+  NVIC_SetPriority(I2C3_ER_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_EnableIRQ(I2C3_ER_IRQn);
+
   /* USER CODE BEGIN I2C3_Init 1 */
 
   /* USER CODE END I2C3_Init 1 */
@@ -321,7 +330,7 @@ static void MX_I2C3_Init(void)
   LL_I2C_DisableGeneralCall(I2C3);
   LL_I2C_EnableClockStretching(I2C3);
   I2C_InitStruct.PeripheralMode = LL_I2C_MODE_I2C;
-  I2C_InitStruct.ClockSpeed = 100000;
+  I2C_InitStruct.ClockSpeed = 400000;
   I2C_InitStruct.DutyCycle = LL_I2C_DUTYCYCLE_2;
   I2C_InitStruct.OwnAddress1 = 0;
   I2C_InitStruct.TypeAcknowledge = LL_I2C_ACK;
@@ -373,7 +382,7 @@ static void MX_UART4_Init(void)
   /* USER CODE BEGIN UART4_Init 1 */
 
   /* USER CODE END UART4_Init 1 */
-  USART_InitStruct.BaudRate = 9600;
+  USART_InitStruct.BaudRate = 115200;
   USART_InitStruct.DataWidth = LL_USART_DATAWIDTH_8B;
   USART_InitStruct.StopBits = LL_USART_STOPBITS_1;
   USART_InitStruct.Parity = LL_USART_PARITY_NONE;

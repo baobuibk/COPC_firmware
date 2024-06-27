@@ -34,7 +34,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Src/../CMDLine/../../ThirdParty/libfsp/fsp.h \
  ../Core/Src/../CMDLine/cmd_IOU/iou_cmd.h \
  ../Core/Src/../CMDLine/cmd_PMU/PMU_cmd.h \
- ../Core/Src/../CMDLine/cmd_PDU/PDU_cmd.h ../Core/Src/../GPS/gps.h
+ ../Core/Src/../CMDLine/cmd_PDU/PDU_cmd.h ../Core/Src/../GPS/gps.h \
+ ../Core/Src/../IMG_I2C/img_i2c.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
@@ -77,3 +78,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Src/../CMDLine/cmd_PMU/PMU_cmd.h:
 ../Core/Src/../CMDLine/cmd_PDU/PDU_cmd.h:
 ../Core/Src/../GPS/gps.h:
+../Core/Src/../IMG_I2C/img_i2c.h:

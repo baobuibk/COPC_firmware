@@ -21,6 +21,10 @@ typedef struct SCH_TaskContextTypedef
   const SCH_TaskPropertyTypedef*        pTaskProperty;
 } SCH_TaskContextTypedef;
 
+
+
+
+
 typedef struct SCH_TimerContextTypedef
 {
   SCH_TimerStateTypedef                 timerState;
@@ -50,7 +54,14 @@ volatile uint32_t               s_SoftTimers[SCH_TIM_LAST];
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
-
+SCH_TaskContextTypedef* SCH_TASK_GetTaskContext(SCH_TASK_HANDLE taskHandle)
+{
+    if (taskHandle >= 0 && taskHandle < MAX_TASK)
+    {
+        return &s_TaskContext[taskHandle];
+    }
+    return NULL;
+}
 
 /* Public functions ----------------------------------------------------------*/
 /*******************************************************************************

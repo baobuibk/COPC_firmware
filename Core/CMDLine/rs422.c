@@ -30,13 +30,19 @@ static void RS422_periodic_task(void);
 typedef struct RS422_TaskContextTypedef
 {
 	SCH_TASK_HANDLE               taskHandle;
+	uint32_t                      taskTick;
 	SCH_TaskPropertyTypedef       taskProperty;
+
 } RS422_TaskContextTypedef;
 
+
+
+uint32_t RS422_task_period = 100;
 
 static RS422_TaskContextTypedef           RS422_task_context =
 {
 	SCH_INVALID_TASK_HANDLE,                 // Will be updated by Schedular
+	0,
 	{
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
@@ -45,6 +51,15 @@ static RS422_TaskContextTypedef           RS422_task_context =
 	}
 };
 
+
+void rs422_set_task_period(uint32_t period_ms)
+{
+    RS422_task_context.taskProperty.taskPeriodInMS = period_ms;
+
+ //    Reset taskTick when changing task period
+    RS422_task_context.taskTick = 0;
+
+}
 
 
 void switch_board(uint8_t board_id) {
@@ -99,13 +114,62 @@ uint8_t* nextBuffer = buffer2;
 
 uint8_t packet_sig = 0;
 uint8_t currentSourceBuffer = 0;
-volatile uint8_t count_packet = 0x0A;
+volatile uint8_t packet_count = 0x00;
 
 
 void RS422_periodic_task(void) {
 	if (rs422_report_enable) {
 
-		if (count_packet == 0x0A)
+        packet_count = 0;
+        uint32_t packets_per_second = 0;
+
+        switch (RS422_task_context.taskProperty.taskPeriodInMS) {
+            case 2000:
+                packets_per_second = 1;
+                break;
+            case 1000:
+                packets_per_second = 1;
+                break;
+            case 500:
+                packets_per_second = 2;
+                break;
+            case 333:
+                packets_per_second = 3;
+                break;
+            case 250:
+                packets_per_second = 4;
+                break;
+            case 200:
+                packets_per_second = 5;
+                break;
+            case 167:
+                packets_per_second = 6;
+                break;
+            case 143:
+                packets_per_second = 7;
+                break;
+            case 125:
+                packets_per_second = 8;
+                break;
+            case 111:
+                packets_per_second = 9;
+                break;
+            case 100:
+                packets_per_second = 10;
+                break;
+            case 91:
+                packets_per_second = 11;
+                break;
+            case 83:
+                packets_per_second = 12;
+                break;
+            default:
+                packets_per_second = 1;
+                break;
+        }
+
+
+		if (packet_count == 0)
 		{
 
 			nextBuffer[0] = 0x02;
@@ -128,7 +192,7 @@ void RS422_periodic_task(void) {
 		    nextBuffer[7] = rounded_temp;
 
 
-			count_packet = 0;
+
 
 			for (int i = 135; i <= 160; i++) {
 				nextBuffer[i] = i - 135;
@@ -150,9 +214,10 @@ void RS422_periodic_task(void) {
             currentBuffer = nextBuffer;
             nextBuffer = tempz;
 
+
 		}
 
-		currentBuffer[1] = count_packet;
+		currentBuffer[1] = packet_count;
 
 		if (swap_byte_enable){
 			for (int i = 1; i < ARRAY_SIZE - 1; i++) {
@@ -176,7 +241,12 @@ void RS422_periodic_task(void) {
         	LL_GPIO_SetOutputPin(GPIOA,LORA_IO0_Pin);
         }
 
-        count_packet++;
+        packet_count++;
+
+        if (packet_count >= packets_per_second) {
+            packet_count = 0;
+        }
+
 	}
 }
 
@@ -187,7 +257,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 	    {
 			if(auto_report_enabled || rf_report_enable){
 				if(auto_report_enabled){
-					Uart_sendstring(USART6, "\nPMU:\n");
+					Uart_sendstring(UART4, "\nPMU:\n");
 				}else{
 					Uart_sendstring(USART2, "\nPMU:\n");
 				}
@@ -220,7 +290,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 						vout / 100, vout % 100, iout / 100, iout % 100);
 
 				if(auto_report_enabled){
-					Uart_sendstring(USART6, buffer_0x08);
+					Uart_sendstring(UART4, buffer_0x08);
 				}else{
 					Uart_sendstring(USART2, buffer_0x08);
 				}
@@ -230,7 +300,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 			for (int i = 1; i <= 24; i++) {
 			    nextBuffer[i + 110] = fsp_pkt->payload[i]; //97   pay1    + 98 pay2    120    pay24
 			}
-//			Uart_sendstring(USART6, "\nPMU_Collected\r\n");
+//			Uart_sendstring(UART4, "\nPMU_Collected\r\n");
 
 			disconnect_counter_pmu = 0;
 
@@ -241,7 +311,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 		{
 			if(auto_report_enabled || rf_report_enable){
 				if(auto_report_enabled){
-					Uart_sendstring(USART6, "\nPDU:\n");
+					Uart_sendstring(UART4, "\nPDU:\n");
 				}else{
 					Uart_sendstring(USART2, "\nPDU:\n");
 				}
@@ -323,7 +393,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 
 					if(auto_report_enabled){
-							Uart_sendstring(USART6, buffer_0x06);
+							Uart_sendstring(UART4, buffer_0x06);
 					}else{
 							Uart_sendstring(USART2, buffer_0x06);
 					}
@@ -334,7 +404,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 					for (int i = 1; i <= 54; i++) {
 					    nextBuffer[i + 56] = fsp_pkt->payload[i]; //43   pay1    + 44  pay2        96-<54
 					}
-//					Uart_sendstring(USART6, "\nPDU_Collected\r\n");
+//					Uart_sendstring(UART4, "\nPDU_Collected\r\n");
 
 					disconnect_counter_pdu = 0;
 		}
@@ -345,7 +415,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 		{
 			if(auto_report_enabled || rf_report_enable){
 				if(auto_report_enabled){
-					Uart_sendstring(USART6, "\nIOU:\n");
+					Uart_sendstring(UART4, "\nIOU:\n");
 				}else{
 					Uart_sendstring(USART2, "\nIOU:\n");
 				}
@@ -420,7 +490,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 		            press);
 
 			if(auto_report_enabled){
-				Uart_sendstring(USART6, buffer_0x13);
+				Uart_sendstring(UART4, buffer_0x13);
 			}else{
 				Uart_sendstring(USART2, buffer_0x13);
 			}
@@ -433,7 +503,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 			for (int i = 1; i <= 49; i++) {
 					    nextBuffer[i + 7] = fsp_pkt->payload[i]; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
 			}
-//			Uart_sendstring(USART6, "\nIOU_Collected\r\n");
+//			Uart_sendstring(UART4, "\nIOU_Collected\r\n");
 
 			disconnect_counter_iou = 0;
 
@@ -442,7 +512,7 @@ void frame_processing_rs422(fsp_packet_t *fsp_pkt){
 
 
 		default:
-			Uart_sendstring(USART6, "Failed to get all");
+			Uart_sendstring(UART4, "Failed to get all");
 			Uart_sendstring(USART2, "Failed to get all");
 			break;
 	}

@@ -24,6 +24,11 @@ typedef void (*SCH_TimerCallback) (void);
 #define SCH_TIMER_HANDLE                uint8_t
 #define SCH_INVALID_TIMER_HANDLE        0xFF
 
+
+
+
+
+
 typedef enum SCH_TASK_TYPE
 {
   SCH_TASK_NONE,
@@ -88,10 +93,15 @@ typedef enum SCH_SoftTimerTypedef
   SCH_TIM_PMU,
   SCH_TIM_PDU,
   SCH_TIM_IOU,
+  SCH_TIM_IMG,
   SCH_TIM_LAST
 } SCH_SoftTimerTypedef;
 
+
+
+
 /* Exported constants --------------------------------------------------------*/
+
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
@@ -113,6 +123,8 @@ uint32_t SCH_SystemTick(void);
 t_Status SCH_TIM_CreateTimer(SCH_TIMER_HANDLE* pHandle, SCH_TimerPropertyTypedef* pTimerProperty);
 t_Status SCH_TIM_StopTimer(SCH_TIMER_HANDLE timerIndex);
 t_Status SCH_TIM_RestartTimer(SCH_TIMER_HANDLE timerIndex);
+
+
 
 
 #ifdef __cplusplus

@@ -13,7 +13,7 @@ USART_TypeDef *uart1 = USART1;
 USART_TypeDef *uart2 = USART2;
 USART_TypeDef *uart3 = USART3;
 USART_TypeDef *uart5 = UART5;
-USART_TypeDef *uart6 = USART6;
+USART_TypeDef *uart6 = UART4;
 
 #define TIMEOUT_DEF 500  // 500ms timeout
 uint16_t timeout;
@@ -98,14 +98,14 @@ void store_char(unsigned char c, ring_buffer *buffer)
     ATOMIC_BLOCK_START(USART2)
     ATOMIC_BLOCK_START(USART3)
     ATOMIC_BLOCK_START(UART5)
-    ATOMIC_BLOCK_START(USART6)
+    ATOMIC_BLOCK_START(UART4)
     buffer->buffer[buffer->head] = c;
     buffer->head = i;
     ATOMIC_BLOCK_END(USART1)
     ATOMIC_BLOCK_END(USART2)
     ATOMIC_BLOCK_END(USART3)
     ATOMIC_BLOCK_END(UART5)
-    ATOMIC_BLOCK_END(USART6)
+    ATOMIC_BLOCK_END(UART4)
   }
 }
 

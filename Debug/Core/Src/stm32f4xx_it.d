@@ -20,7 +20,8 @@ Core/Src/stm32f4xx_it.o: ../Core/Src/stm32f4xx_it.c ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h \
  ../Core/Inc/stm32f4xx_it.h ../Core/Src/../../BSP/UART/uart.h \
  ../Core/Src/../../Scheduler/scheduler.h \
- ../Core/Src/../../Scheduler/../Core/Common/basetypedef.h
+ ../Core/Src/../../Scheduler/../Core/Common/basetypedef.h \
+ ../Core/Src/../../Core/IMG_I2C/img_i2c.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
@@ -45,3 +46,4 @@ Core/Src/stm32f4xx_it.o: ../Core/Src/stm32f4xx_it.c ../Core/Inc/main.h \
 ../Core/Src/../../BSP/UART/uart.h:
 ../Core/Src/../../Scheduler/scheduler.h:
 ../Core/Src/../../Scheduler/../Core/Common/basetypedef.h:
+../Core/Src/../../Core/IMG_I2C/img_i2c.h:

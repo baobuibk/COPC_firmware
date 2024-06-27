@@ -439,13 +439,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 				case FSP_PKT_TYPE_ACK:
 					clear_send_flag();
 
-                    if (uart_choose_uart5) {
-                    	Uart_sendstring(UART5, "\nPMU_ACK\r\n> ");
-                    }
+//                    if (uart_choose_uart5) {
+//                    	Uart_sendstring(UART5, "\nPMU_ACK\r\n> ");
+//                    }
                     if (uart_choose_usart2) {
                     	Uart_sendstring(USART2, "\nPMU_ACK\r\n> ");
                     }
-					Uart_sendstring(USART6, "\nPMU_ACK\r\n> ");
+					Uart_sendstring(UART4, "\nPMU_ACK\r\n> ");
 
 				case FSP_PKT_TYPE_CMD_W_DATA:
 					//reverse
@@ -456,13 +456,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						{
 							char buffer_0x00[50];
 							sprintf(buffer_0x00, "PMU_Done: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-		                    if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x00);
-		                    }
+//		                    if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x00);
+//		                    }
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x00);
 		                    }
-							Uart_sendstring(USART6, buffer_0x00);
+							Uart_sendstring(UART4, buffer_0x00);
 
 						}
 							break;
@@ -471,13 +471,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							char buffer_0xFF[50];
 
 							sprintf(buffer_0xFF, "PMU_Failed: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0xFF);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0xFF);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0xFF);
 		                    }
-							Uart_sendstring(USART6, buffer_0xFF);
+							Uart_sendstring(UART4, buffer_0xFF);
 						}
 							break;
 
@@ -494,13 +494,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						            ntc1 < 0 ? "-" : "", abs(ntc1) / 100, abs(ntc1) % 100,
 						            ntc2 < 0 ? "-" : "", abs(ntc2) / 100, abs(ntc2) % 100,
 						            ntc3 < 0 ? "-" : "", abs(ntc3) / 100, abs(ntc3) % 100);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x01);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x01);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x01);
 		                    }
-							Uart_sendstring(USART6, buffer_0x01);
+							Uart_sendstring(UART4, buffer_0x01);
 						}
 						break;
 
@@ -514,13 +514,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 					        char buffer_0x02[100];
 					        sprintf(buffer_0x02, "PMU_Res: CMDcode 0x02 [BAT0: %d.%02d V, BAT1: %d.%02d V, BAT2: %d.%02d V, BAT3: %d.%02d V]\n",
 					                bat0/100, bat0%100, bat1/100, bat1%100, bat2/100, bat2%100, bat3/100, bat3%100);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x02);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x02);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x02);
 		                    }
-							Uart_sendstring(USART6, buffer_0x02);
+							Uart_sendstring(UART4, buffer_0x02);
 						}
 							break;
 						case 0x03:
@@ -532,13 +532,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						    sprintf(buffer_0x03, "PMU_Res: CMDcode 0x03 [VIN: %d.%02d V, IIN: %d.%02d A]\n",
 						            vin/100, vin%100, iin/100, iin%100);
 
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x03);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x03);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x03);
 		                    }
-							Uart_sendstring(USART6, buffer_0x03);
+							Uart_sendstring(UART4, buffer_0x03);
 
 						}
 						    break;
@@ -553,13 +553,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						    sprintf(buffer_0x04_pmu, "PMU_Res: CMDcode 0x04 [VOUT: %d.%02d V, IOUT: %d.%02d A]\n",
 						            vout/100, vout%100, iout/100, iout%100);
 
-							if (uart_choose_uart5) {
-							    Uart_sendstring(UART5, buffer_0x04_pmu);
-							}
+//							if (uart_choose_uart5) {
+//							    Uart_sendstring(UART5, buffer_0x04_pmu);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x04_pmu);
 		                    }
-							Uart_sendstring(USART6, buffer_0x04_pmu);
+							Uart_sendstring(UART4, buffer_0x04_pmu);
 						}
 
 							break;
@@ -594,13 +594,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 							    	        vout / 100, vout % 100, iout / 100, iout % 100);
 
 
-									if (uart_choose_uart5) {
-								    	Uart_sendstring(UART5, buffer_0x08);
-									}
+//									if (uart_choose_uart5) {
+//								    	Uart_sendstring(UART5, buffer_0x08);
+//									}
 				                    if (uart_choose_usart2) {
 				                    	Uart_sendstring(USART2, buffer_0x08);
 				                    }
-									Uart_sendstring(USART6, buffer_0x08);
+									Uart_sendstring(UART4, buffer_0x08);
 
 
 							    }
@@ -620,13 +620,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 			{
 				case FSP_PKT_TYPE_ACK:
 					clear_send_flag();
-					if (uart_choose_uart5) {
-						Uart_sendstring(UART5, "\n> PDU_ACK\r\n> ");
-					}
+//					if (uart_choose_uart5) {
+//						Uart_sendstring(UART5, "\n> PDU_ACK\r\n> ");
+//					}
                     if (uart_choose_usart2) {
                     	Uart_sendstring(USART2, "\n> PDU_ACK\r\n> ");
                     }
-					Uart_sendstring(USART6, "\n> PDU_ACK\r\n> ");
+					Uart_sendstring(UART4, "\n> PDU_ACK\r\n> ");
 
 					break;
 				case FSP_PKT_TYPE_CMD_W_DATA:
@@ -638,13 +638,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						{
 							char buffer_0x00[50];
 							sprintf(buffer_0x00, "PDU_Done: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x00);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x00);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x00);
 		                    }
-							Uart_sendstring(USART6, buffer_0x00);
+							Uart_sendstring(UART4, buffer_0x00);
 
 						}
 							break;
@@ -652,13 +652,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						{
 							char buffer_0xFF[50];
 							sprintf(buffer_0xFF, "PDU_Failed: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0xFF);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0xFF);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0xFF);
 		                    }
-							Uart_sendstring(USART6, buffer_0xFF);
+							Uart_sendstring(UART4, buffer_0xFF);
 
 						}
 							break;
@@ -672,13 +672,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 
 							        char buffer_0x07[100];
 							        sprintf(buffer_0x07, "PDU_Res: CMDcode 0x04 [{Channel %u} Status %u, Voltage: %u, Current: %u]\n", channel, status_0x04, voltage_0x04, current_0x04);
-									if (uart_choose_uart5) {
-										Uart_sendstring(UART5, buffer_0x07);
-									}
+//									if (uart_choose_uart5) {
+//										Uart_sendstring(UART5, buffer_0x07);
+//									}
 				                    if (uart_choose_usart2) {
 				                    	Uart_sendstring(USART2, buffer_0x07);
 				                    }
-									Uart_sendstring(USART6, buffer_0x07);
+									Uart_sendstring(UART4, buffer_0x07);
 
 						}
 									break;
@@ -691,13 +691,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 
 						            char buffer_0x05[100];
 						            sprintf(buffer_0x05, "PDU_Res: CMDcode 0x05 [{Buck %u} Status %u, Voltage: %u, Current: %u]\n", buck, status_0x05, voltage_0x05, current_0x05);
-									if (uart_choose_uart5) {
-										Uart_sendstring(UART5, buffer_0x05);
-									}
+//									if (uart_choose_uart5) {
+//										Uart_sendstring(UART5, buffer_0x05);
+//									}
 				                    if (uart_choose_usart2) {
 				                    	Uart_sendstring(USART2, buffer_0x05);
 				                    }
-									Uart_sendstring(USART6, buffer_0x05);
+									Uart_sendstring(UART4, buffer_0x05);
 
 						}
 									break;
@@ -778,13 +778,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						                cm4_status, cm4_current,
 						                vin_status, vin_voltage,
 						                vbus_status, vbus_voltage);
-									if (uart_choose_uart5) {
-										Uart_sendstring(UART5, buffer_0x06);
-									}
+//									if (uart_choose_uart5) {
+//										Uart_sendstring(UART5, buffer_0x06);
+//									}
 				                    if (uart_choose_usart2) {
 				                    	Uart_sendstring(USART2, buffer_0x06);
 				                    }
-									Uart_sendstring(USART6, buffer_0x06);
+									Uart_sendstring(UART4, buffer_0x06);
 
 						}
 
@@ -832,13 +832,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 			{
 				case FSP_PKT_TYPE_ACK:
 					clear_send_flag();
-					if (uart_choose_uart5) {
-						Uart_sendstring(UART5, "\nIOU_ACK\r\n> ");
-					}
+//					if (uart_choose_uart5) {
+//						Uart_sendstring(UART5, "\nIOU_ACK\r\n> ");
+//					}
                     if (uart_choose_usart2) {
                     	Uart_sendstring(USART2, "\nIOU_ACK\r\n> ");
                     }
-					Uart_sendstring(USART6, "\nIOU_ACK\r\n> ");
+					Uart_sendstring(UART4, "\nIOU_ACK\r\n> ");
 
 					break;
 				case FSP_PKT_TYPE_CMD_W_DATA:
@@ -850,13 +850,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						{
 							char buffer_0x00[50];
 							sprintf(buffer_0x00, "IOU_Done: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x00);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x00);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x00);
 		                    }
-							Uart_sendstring(USART6, buffer_0x00);
+							Uart_sendstring(UART4, buffer_0x00);
 
 						}
 							break;
@@ -864,13 +864,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						{
 							char buffer_0xFF[50];
 							sprintf(buffer_0xFF, "IOU_Failed: CMDcode 0x%02X\n", fsp_pkt->payload[1]);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0xFF);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0xFF);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0xFF);
 		                    }
-							Uart_sendstring(USART6, buffer_0xFF);
+							Uart_sendstring(UART4, buffer_0xFF);
 
 						}
 							break;
@@ -884,13 +884,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						    char buffer_0x02[100];
 						    sprintf(buffer_0x02, "IOU_Res: CMDcode 0x02 [{Device: %u, Channel: %u} Temp: %d.%d]\n",
 						            device, channel, temp / 10, abs(temp % 10));
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x02);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x02);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x02);
 		                    }
-							Uart_sendstring(USART6, buffer_0x02);
+							Uart_sendstring(UART4, buffer_0x02);
 
 						}
 						break;
@@ -903,13 +903,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						    char buffer_0x03[100];
 						    sprintf(buffer_0x03, "IOU_Res: CMDcode 0x03 [{Channel: %u} Temp: %d.%d]\n",
 						            channel, temp / 10, temp % 10);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x03);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x03);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x03);
 		                    }
-							Uart_sendstring(USART6, buffer_0x03);
+							Uart_sendstring(UART4, buffer_0x03);
 
 						}
 						break;
@@ -924,13 +924,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						    char buffer_0x0E[100];
 						    sprintf(buffer_0x0E, "IOU_Res: CMDcode 0x0E [Red: %u, Blue: %u, Green: %u, White: %u]\n",
 						            red, blue, green, white);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x0E);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x0E);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x0E);
 		                    }
-							Uart_sendstring(USART6, buffer_0x0E);
+							Uart_sendstring(UART4, buffer_0x0E);
 
 						}
 
@@ -942,13 +942,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 
 						    char buffer_0x10[100];
 						    sprintf(buffer_0x10, "IOU_Res: CMDcode 0x10 [Duty: %u%%]\n", duty);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x10);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x10);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x10);
 		                    }
-							Uart_sendstring(USART6, buffer_0x10);
+							Uart_sendstring(UART4, buffer_0x10);
 
 						}
 						break;
@@ -966,13 +966,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						    char buffer_0x11[200];
 						    sprintf(buffer_0x11, "IOU_Res: CMDcode 0x11 [Accel: X=%d, Y=%d, Z=%d\nGyro: X=%d, Y=%d, Z=%d]\n",
 						            accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x11);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x11);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x11);
 		                    }
-							Uart_sendstring(USART6, buffer_0x11);
+							Uart_sendstring(UART4, buffer_0x11);
 
 						}
 						break;
@@ -983,13 +983,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 
 						    char buffer_0x12[100];
 						    sprintf(buffer_0x12, "IOU_Res: CMDcode 0x12 [Press: %u]\n", pressure);
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x12);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x12);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x12);
 		                    }
-							Uart_sendstring(USART6, buffer_0x12);
+							Uart_sendstring(UART4, buffer_0x12);
 
 						}
 						break;
@@ -1067,13 +1067,13 @@ int frame_processing(fsp_packet_t *fsp_pkt){
 						            press);
 
 
-							if (uart_choose_uart5) {
-								Uart_sendstring(UART5, buffer_0x13);
-							}
+//							if (uart_choose_uart5) {
+//								Uart_sendstring(UART5, buffer_0x13);
+//							}
 		                    if (uart_choose_usart2) {
 		                    	Uart_sendstring(USART2, buffer_0x13);
 		                    }
-							Uart_sendstring(USART6, buffer_0x13);
+							Uart_sendstring(UART4, buffer_0x13);
 
 
 

@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include "main.h"
 #include "global_vars.h"
+#include "../../Core/CMDLine/rs422.h"
 
 
 #include "stm32f4xx_ll_rcc.h"
@@ -54,6 +55,8 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"rf_report_ena", Cmd_rf_report_ena,": Enable Mirror 282 byte to Text as Debug Port [ESC] | format: rf_report_ena" },
 								{"set_byte_rs422", Cmd_set_byte_rs422, ": Set Size of packet RS422, Default 282 (150<x<1000) | format: set_byte_rs422 <size>"},
 								{"set_baud_rs422", Cmd_set_baudrate_rs422, ": [9600|19200|38400|115200|230400|460800], Default 115200 | format: set_baud_rs422 <baudrate>"},
+								{"set_fre_rs422", Cmd_set_fre_rs422, ": [0(0.5)|1|2|3|4|5|6|7|8|9|10|11|12], Packet per second| format: set_fre_rs422 <packet>"},
+
 								{"swap_byte_ena", Cmd_swap_byte_ena, ": Enable swap byte RS422, 0x02->0xFE, 0x03->0xFD | format: swap_byte_ena"},
 								{"swap_byte_dis", Cmd_swap_byte_dis, ": Disable swap byte RS422 | format: swap_byte_dis"},
 								{"memory_usage", Cmd_memory_usage, ": %RAM and %FLASH Used | format: memory_usage"},
@@ -177,13 +180,13 @@ void	command_init(void)
 //	p_CommandRingBuffer = uart_get_uart0_rx_buffer_address();
 	memset((void *)s_commandBuffer, 0, sizeof(s_commandBuffer));
 	s_commandBufferIndex = 0;
-	Uart_sendstring(UART5,"\r\n");
-	Uart_sendstring(UART5,"> CPOC FIRMWARE V1.2.0 \r\n");
-	Uart_sendstring(UART5,"\r\n");
+//	Uart_sendstring(UART5,"\r\n");
+//	Uart_sendstring(UART5,"> CPOC FIRMWARE V1.2.0 \r\n");
+//	Uart_sendstring(UART5,"\r\n");
 
-    Uart_sendstring(USART6, "\r\n");
-    Uart_sendstring(USART6, "> CPOC FIRMWARE V1.2.0 \r\n");
-    Uart_sendstring(USART6, "\r\n");
+    Uart_sendstring(UART4, "\r\n");
+    Uart_sendstring(UART4, "> CPOC FIRMWARE V1.2.0 \r\n");
+    Uart_sendstring(UART4, "\r\n");
 
     Uart_sendstring(USART2, "B");
     Uart_sendstring(USART2, "\r\n");
@@ -195,23 +198,23 @@ void	command_init(void)
 	tCmdLineEntry *pEntry;
 
 
-	Uart_sendstring(UART5, "\nStart with <help_xxxx> command\r\n");
-	Uart_sendstring(UART5, "-------------------------------------\r\n");
-    Uart_sendstring(USART6, "\nStart with <help_xxxx> command\r\n");
-    Uart_sendstring(USART6, "-------------------------------------\r\n");
+//	Uart_sendstring(UART5, "\nStart with <help_xxxx> command\r\n");
+//	Uart_sendstring(UART5, "-------------------------------------\r\n");
+    Uart_sendstring(UART4, "\nStart with <help_xxxx> command\r\n");
+    Uart_sendstring(UART4, "-------------------------------------\r\n");
     Uart_sendstring(USART2, "\nStart with <help_xxxx> command\r\n");
     Uart_sendstring(USART2, "-------------------------------------\r\n");
 
 	pEntry = &g_psCmdTable[0];
 
 	while (pEntry->pcCmd) {
-		Uart_sendstring(UART5, pEntry->pcCmd);
-		Uart_sendstring(UART5, pEntry->pcHelp);
-		Uart_sendstring(UART5, "\r\n");
+//		Uart_sendstring(UART5, pEntry->pcCmd);
+//		Uart_sendstring(UART5, pEntry->pcHelp);
+//		Uart_sendstring(UART5, "\r\n");
 
-        Uart_sendstring(USART6, pEntry->pcCmd);
-        Uart_sendstring(USART6, pEntry->pcHelp);
-        Uart_sendstring(USART6, "\r\n");
+        Uart_sendstring(UART4, pEntry->pcCmd);
+        Uart_sendstring(UART4, pEntry->pcHelp);
+        Uart_sendstring(UART4, "\r\n");
 
         Uart_sendstring(USART2, pEntry->pcCmd);
         Uart_sendstring(USART2, pEntry->pcHelp);
@@ -223,8 +226,8 @@ void	command_init(void)
 	    pEntry++;
 	}
 
-	Uart_sendstring(UART5, "\r\n> ");
-    Uart_sendstring(USART6, "\r\n> ");
+//	Uart_sendstring(UART5, "\r\n> ");
+    Uart_sendstring(UART4, "\r\n> ");
     Uart_sendstring(USART2, "\r\n> ");
 }
 
@@ -238,18 +241,18 @@ static void command_task_update(void)
     char rxData;
 
 
-    while (IsDataAvailable(UART5) || IsDataAvailable(USART6) || IsDataAvailable(USART2))
+    while (IsDataAvailable(UART4) || IsDataAvailable(USART2))
     {
-        if (IsDataAvailable(UART5)) {
-            rxData = Uart_read(UART5);
-            Uart_write(UART5, rxData);
-            process_command(UART5, rxData);
-        }
+//        if (IsDataAvailable(UART5)) {
+//            rxData = Uart_read(UART5);
+//            Uart_write(UART5, rxData);
+//            process_command(UART5, rxData);
+//        }
 
-        if (IsDataAvailable(USART6)) {
-            rxData = Uart_read(USART6);
-            Uart_write(USART6, rxData);
-            process_command(USART6, rxData);
+        if (IsDataAvailable(UART4)) {
+            rxData = Uart_read(UART4);
+            Uart_write(UART4, rxData);
+            process_command(UART4, rxData);
         }
 
         if (IsDataAvailable(USART2)) {
@@ -646,6 +649,71 @@ int Cmd_set_baudrate_rs422(int argc, char *argv[])
 }
 
 
+int Cmd_set_fre_rs422(int argc, char *argv[])
+{
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+
+//	{"set_baudrate_rs422", Cmd_set_baudrate_rs422, ": [9600|19200|38400|115200|230400|460800], Default 115200 | format: set_baudrate_rs422 <size>"},
+
+
+    uint8_t fre = atoi(argv[1]);
+
+    switch (fre) {
+        case 0:
+        	rs422_set_task_period(2000);
+            break;
+        case 1:
+        	rs422_set_task_period(1000);
+            break;
+        case 2:
+        	rs422_set_task_period(500);
+            break;
+        case 3:
+        	rs422_set_task_period(333);
+            break;
+        case 4:
+        	rs422_set_task_period(250);
+            break;
+        case 5:
+        	rs422_set_task_period(200);
+            break;
+        case 6:
+        	rs422_set_task_period(167);
+            break;
+        case 7:
+        	rs422_set_task_period(143);
+            break;
+        case 8:
+        	rs422_set_task_period(125);
+            break;
+        case 9:
+        	rs422_set_task_period(111);
+            break;
+        case 10:
+        	rs422_set_task_period(100);
+            break;
+        case 11:
+        	rs422_set_task_period(91);
+            break;
+        case 12:
+        	rs422_set_task_period(83);
+            break;
+        default:
+        	return CMDLINE_INVALID_ARG;
+            break;
+    }
+
+
+	Uart_flush(USART1);
+
+    char msg[50];
+    sprintf(msg, "\nRS422 Packet per second set to %d.\n", fre);
+    Uart_sendstring(USARTx, msg);
+    return CMDLINE_OK;
+}
+
 
 int Cmd_auto_report_ena(int argc, char *argv[])
 {
@@ -849,35 +917,35 @@ void	command_create_task(void)
 
 void	command_send_splash(void)
 {
-	Uart_sendstring(USART6, "------------------------------------------------\r\n");
-	Uart_sendstring(USART6, "--        ____                                --\r\n");
-	Uart_sendstring(USART6, "--       / ___| _ __   __ _  ___ ___          --\r\n");
-	Uart_sendstring(USART6, "--       \\___ \\| '_ \\ / _` |/ __/ _ \\         --  \r\n");
-	Uart_sendstring(USART6, "--        ___) | |_) | (_| | (_|  __/         --\r\n");
-	Uart_sendstring(USART6, "--       |____/| -__/ \\__,_|\\___\\___|         --  \r\n");
-	Uart_sendstring(USART6, "--             |_|                            --\r\n");
-	Uart_sendstring(USART6, "--     _     _ _     _____         _          --\r\n");
-	Uart_sendstring(USART6, "--    | |   (_|_)_ _|_   _|__  ___| |__       --\r\n");
-	Uart_sendstring(USART6, "--    | |   | | | '_ \\| |/ _ \\/ __| '_ \\      --\r\n");
-	Uart_sendstring(USART6, "--    | |___| | | | | | |  __/ (__| | | |     --\r\n");
-	Uart_sendstring(USART6, "--    |_____|_|_|_| |_|_|\\___|\\___| |_|_|     --\r\n");
-	Uart_sendstring(USART6, "------------------------------------------------\r\n");
-	Uart_sendstring(USART6, "--           ____ ____   ___   ____           --\r\n");
-	Uart_sendstring(USART6, "--          / ___|  _ \\ / _ \\ / ___|          --\r\n");
-	Uart_sendstring(USART6, "--         | |   | |_) | | | | |              --\r\n");
-	Uart_sendstring(USART6, "--         | |___|  __/| |_| | |___           --\r\n");
-	Uart_sendstring(USART6, "--          \\____|_|    \\___/ \\____|          -- \r\n");
-	Uart_sendstring(USART6, "--                  _   ___   ___             --\r\n");
-	Uart_sendstring(USART6, "--          __   __/ | / _ \\ / _ \\            -- \r\n");
-	Uart_sendstring(USART6, "--          \\ \\ / /| || | | | | | |           --  \r\n");
-	Uart_sendstring(USART6, "--           \\ V / | || |_| | |_| |           -- \r\n");
-	Uart_sendstring(USART6, "--            \\_/  |_(_)___(_)___/            -- \r\n");
-    Uart_sendstring(USART6, "------------------------------------------------\r\n");
-	Uart_sendstring(USART6, "> ");
+	Uart_sendstring(UART4, "------------------------------------------------\r\n");
+	Uart_sendstring(UART4, "--        ____                                --\r\n");
+	Uart_sendstring(UART4, "--       / ___| _ __   __ _  ___ ___          --\r\n");
+	Uart_sendstring(UART4, "--       \\___ \\| '_ \\ / _` |/ __/ _ \\         --  \r\n");
+	Uart_sendstring(UART4, "--        ___) | |_) | (_| | (_|  __/         --\r\n");
+	Uart_sendstring(UART4, "--       |____/| -__/ \\__,_|\\___\\___|         --  \r\n");
+	Uart_sendstring(UART4, "--             |_|                            --\r\n");
+	Uart_sendstring(UART4, "--     _     _ _     _____         _          --\r\n");
+	Uart_sendstring(UART4, "--    | |   (_|_)_ _|_   _|__  ___| |__       --\r\n");
+	Uart_sendstring(UART4, "--    | |   | | | '_ \\| |/ _ \\/ __| '_ \\      --\r\n");
+	Uart_sendstring(UART4, "--    | |___| | | | | | |  __/ (__| | | |     --\r\n");
+	Uart_sendstring(UART4, "--    |_____|_|_|_| |_|_|\\___|\\___| |_|_|     --\r\n");
+	Uart_sendstring(UART4, "------------------------------------------------\r\n");
+	Uart_sendstring(UART4, "--           ____ ____   ___   ____           --\r\n");
+	Uart_sendstring(UART4, "--          / ___|  _ \\ / _ \\ / ___|          --\r\n");
+	Uart_sendstring(UART4, "--         | |   | |_) | | | | |              --\r\n");
+	Uart_sendstring(UART4, "--         | |___|  __/| |_| | |___           --\r\n");
+	Uart_sendstring(UART4, "--          \\____|_|    \\___/ \\____|          -- \r\n");
+	Uart_sendstring(UART4, "--                  _   ___   ___             --\r\n");
+	Uart_sendstring(UART4, "--          __   __/ | / _ \\ / _ \\            -- \r\n");
+	Uart_sendstring(UART4, "--          \\ \\ / /| || | | | | | |           --  \r\n");
+	Uart_sendstring(UART4, "--           \\ V / | || |_| | |_| |           -- \r\n");
+	Uart_sendstring(UART4, "--            \\_/  |_(_)___(_)___/            -- \r\n");
+    Uart_sendstring(UART4, "------------------------------------------------\r\n");
+	Uart_sendstring(UART4, "> ");
 
-	Uart_sendstring(UART5, "\r\n");
-	Uart_sendstring(UART5, ">>>>> CPOC V1.2.0 RS422 <<<<<\r\n");
-	Uart_sendstring(UART5, "> ");
+//	Uart_sendstring(UART5, "\r\n");
+//	Uart_sendstring(UART5, ">>>>> CPOC V1.2.0 RS422 <<<<<\r\n");
+//	Uart_sendstring(UART5, "> ");
 
 	Uart_sendstring(USART2, "\r\n");
 	Uart_sendstring(USART2, ">>>>> CPOC V1.2.0 XBEE RF <<<<<\r\n");

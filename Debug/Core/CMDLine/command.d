@@ -24,7 +24,8 @@ Core/CMDLine/command.o: ../Core/CMDLine/command.c \
  ../Core/CMDLine/../../BSP/UART/uart.h ../Core/CMDLine/cmd_IOU/iou_cmd.h \
  ../Core/CMDLine/cmd_PDU/pdu_cmd.h ../Core/CMDLine/cmd_PMU/pmu_cmd.h \
  ../Core/CMDLine/cmd_CAM/cam_cmd.h ../Core/CMDLine/../../BSP/RTC/ds3231.h \
- ../Core/CMDLine/global_vars.h
+ ../Core/CMDLine/global_vars.h ../Core/CMDLine/../../Core/CMDLine/rs422.h \
+ ../Core/CMDLine/../../Core/CMDLine/../../ThirdParty/libfsp/fsp.h
 ../Core/CMDLine/../../Scheduler/scheduler.h:
 ../Core/CMDLine/../../Scheduler/../Core/Common/basetypedef.h:
 ../Core/CMDLine/command.h:
@@ -56,3 +57,5 @@ Core/CMDLine/command.o: ../Core/CMDLine/command.c \
 ../Core/CMDLine/cmd_CAM/cam_cmd.h:
 ../Core/CMDLine/../../BSP/RTC/ds3231.h:
 ../Core/CMDLine/global_vars.h:
+../Core/CMDLine/../../Core/CMDLine/rs422.h:
+../Core/CMDLine/../../Core/CMDLine/../../ThirdParty/libfsp/fsp.h:

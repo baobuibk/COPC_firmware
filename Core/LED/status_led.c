@@ -13,6 +13,7 @@
 #include "main.h"
 #include "../../BSP/RTC/ds3231.h"
 #include <stdio.h>
+#include "../../Core/CMDLine/global_vars.h"
 uint8_t hour, min, sec;
 char buffer[20];
 
@@ -98,6 +99,7 @@ void	status_led_update(void)
 	}
 }
 
+int count = 0;
 static void status_led_powerup(void)
 {
     if (s_led_display_status.led == 1) // LED is ON
@@ -105,6 +107,17 @@ static void status_led_powerup(void)
         if (SCH_TIM_HasCompleted(SCH_TIM_LED))
         {
             s_led_display_status.led = 0;
+            if(!rs422_report_enable){
+            	char buffer_0x00[20];
+
+				sprintf(buffer_0x00, "\nAlive[%d]\n", count);
+				Uart_sendstring(UART5, buffer_0x00);
+				count++;
+				if(count>4){
+					count =0;
+				}
+
+            }
 //            command_send_splash();
 //
 //            DS3231_GetTime(&hour, &min, &sec);

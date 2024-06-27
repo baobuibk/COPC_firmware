@@ -1,0 +1,10 @@
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:1060:22:LL_I2C_DisableIT_RX	1
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:1262:26:LL_I2C_IsActiveFlag_RXNE	1
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:1503:22:LL_I2C_ClearFlag_ADDR	1
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:1674:22:LL_I2C_GenerateStartCondition	1
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:1685:22:LL_I2C_GenerateStopCondition	1
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:1835:25:LL_I2C_ReceiveData8	1
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:1847:22:LL_I2C_TransmitData8	1
+../Core/IMG_I2C/img_i2c.c:47:13:I2C_img_task_update	6
+../Core/IMG_I2C/img_i2c.c:104:6:I2C_img_create_task	1
+../Core/IMG_I2C/img_i2c.c:109:6:I2C3_IRQHandler	3

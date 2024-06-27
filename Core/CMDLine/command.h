@@ -42,6 +42,7 @@ int Cmd_swap_byte_ena(int argc, char *argv[]);
 int Cmd_time_get(int argc, char *argv[]);
 int Cmd_time_set(int argc, char *argv[]);
 int Cmd_cpoc_reset(int argc, char *argv[]);
+int Cmd_set_fre_rs422(int argc, char *argv[]);
 //int Cmd_board_alive(int argc, char *argv[]);
 int Cmd_rf_ena(int argc, char *argv[]);
 int Cmd_rf_dis(int argc, char *argv[]);
