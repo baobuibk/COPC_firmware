@@ -39,7 +39,8 @@ static ACKsend_TaskContextTypedef           ACKsend_task_context =
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
 		100,                                // taskPeriodInMS;
-		status_ACKsend_update					// taskFunction;
+		status_ACKsend_update,					// taskFunction;
+		95							//taskTick
 	}
 };
 

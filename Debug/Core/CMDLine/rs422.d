@@ -24,7 +24,10 @@ Core/CMDLine/rs422.o: ../Core/CMDLine/rs422.c ../Core/CMDLine/rs422.h \
  ../Core/CMDLine/../../Scheduler/scheduler.h \
  ../Core/CMDLine/../../Scheduler/../Core/Common/basetypedef.h \
  ../Core/CMDLine/../../ThirdParty/libfsp/crc.h \
- ../Core/CMDLine/../../BSP/RTC/ds3231.h
+ ../Core/CMDLine/../../BSP/RTC/ds3231.h ../Core/CMDLine/cmd_CAM/cam_cmd.h \
+ ../Core/CMDLine/../CMDLine/cmdline.h \
+ ../Core/CMDLine/../CMDLine/command.h \
+ ../Core/CMDLine/../CMDLine/cmdline.h
 ../Core/CMDLine/rs422.h:
 ../Core/CMDLine/../../ThirdParty/libfsp/fsp.h:
 ../Core/CMDLine/../../BSP/UART/uart.h:
@@ -53,3 +56,7 @@ Core/CMDLine/rs422.o: ../Core/CMDLine/rs422.c ../Core/CMDLine/rs422.h \
 ../Core/CMDLine/../../Scheduler/../Core/Common/basetypedef.h:
 ../Core/CMDLine/../../ThirdParty/libfsp/crc.h:
 ../Core/CMDLine/../../BSP/RTC/ds3231.h:
+../Core/CMDLine/cmd_CAM/cam_cmd.h:
+../Core/CMDLine/../CMDLine/cmdline.h:
+../Core/CMDLine/../CMDLine/command.h:
+../Core/CMDLine/../CMDLine/cmdline.h:

@@ -47,6 +47,6 @@ int Cmd_set_fre_rs422(int argc, char *argv[]);
 int Cmd_rf_ena(int argc, char *argv[]);
 int Cmd_rf_dis(int argc, char *argv[]);
 int Cmd_start_positioining(int argc, char *argv[]);
-
+int Cmd_format_gps(int argc, char *argv[]);
 
 #endif /* CMDLINE_COMMAND_H_ */

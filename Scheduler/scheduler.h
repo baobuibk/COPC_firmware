@@ -61,6 +61,7 @@ typedef struct SCH_TaskPropertyTypedef
   SCH_TASK_PRIORITY             taskPriority;
   uint32_t                      taskPeriodInMS;
   SCH_TASK                      taskFunction;
+  uint32_t                      taskTick;
 } SCH_TaskPropertyTypedef;
 
 typedef struct SCH_TimerPropertyTypedef

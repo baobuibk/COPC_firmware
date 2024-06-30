@@ -16,142 +16,8 @@
 #include "../ACK_packet/ACKsend_packet.h"
 #include "../global_vars.h"
 #include "../rs422.h"
-//*****************************************************************************
-//
-// Function: set_temp
-// Cmd code: 1
-// Description: set the setpoint temperature
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 channel
-//          uint16 setpoint
-//
-//*****************************************************************************
-//
-// Function: get_temp
-// Cmd code: 2
-// Description: get temperature of channel
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 channel
-//          uint8 sensor (0: NTC, 1: one wire, 2: I2C sensor)
-//
-//*****************************************************************************
-//
-// Function: get_temp_setpoint
-// Cmd code: 3
-// Description: get the setpoint of channel
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint16 channel
-//
-//*****************************************************************************
-//
-// Function: Tec_ena
-// Cmd code: 4
-// Description: enable tec channel
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 channel
-//
-//*****************************************************************************
-//
-// Function: tec_dis
-// Cmd code: 5
-// Description: disable tec channel
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 channel
-//
-//*****************************************************************************
-//
-// Function: tec_dis_auto
-// Cmd code: 6
-// Description: disable tec auto control
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 channel
-//
-//*****************************************************************************
-//
-// Function: tec_ena_auto
-// Cmd code: 7
-// Description: enable tec auto control
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 channel
-//
-//*****************************************************************************
-//
-// Function: tec_set_output
-// Cmd code: 8
-// Description: set tec_output
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8_t channel (7 bit for channel)
-//          uint8_t heat_cool (1: heat, 0: cool)
-//          uint16_t volatge out (250 mean 2.5V)
-//
-//*****************************************************************************
-//
-// Function: tec_set_PID_param
-// Description: set PID param
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint16_t KP
-//          uint16_t KI
-//          uint16_t KD
-//
-//*****************************************************************************
-//
-// Function: tec_get_PID_param
-// Description: get PID param
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint16_t KD
-//
-//*****************************************************************************
-//
-// Function: ir_led_set
-// Cmd code: 9
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 duty (0 to 100)
-//
-//*****************************************************************************
-//
+#include <string.h>
 
-// Function: ir_led_off
-// Cmd code: 10
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//
-//*****************************************************************************
-//
-// Function: neo_set_rgb
-// Cmd code: 11
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 R
-//          uint8 G
-//          uint8 B
-//
-//*****************************************************************************
-//
-// Function: neo_set_bright
-// Cmd code: 14
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//          uint8 brightness
-//
-//*****************************************************************************
-//
-// Function: iou_get_status
-// Cmd code: 15
-// Description: get IOU status
-// Type: FSP_PKT_TYPE_CMD_WITH_ACK
-// Payload: uint8 cmd
-//
-//*****************************************************************************
 #define DEST_ADDR FSP_ADR_IOU
 
 uint8_t iou_frame[] = {0xCA, 0x01, 0x05, 0x01, 0x04, 0x13, 0xCF, 0xB2, 0xEF};
@@ -175,7 +41,8 @@ static IOU_TaskContextTypedef           IOU_task_context =
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
 		100,                                // taskPeriodInMS;
-		IOU_update_task					// taskFunction;
+		IOU_update_task,					// taskFunction;
+		93							//taskTick
 	}
 };
 
@@ -225,25 +92,19 @@ void IOU_update_task(void) {
 						SCH_TIM_Start(SCH_TIM_IOU, IOU_PERIOD);
 					}
 				}
+			}else{
 				if(!receive_iouFlag){
-					timeout_counter_iou++;
-					if (timeout_counter_iou > 2){
-						disconnect_counter_iou++;
-						timeout_counter_iou = 0;
-						receive_iouFlag = 1;
-						send_rs422 = 0;
-						if(disconnect_counter_iou> 4){
-							disconnect_counter_iou = 5;
-							for (int i = 1; i <= 35; i++) {
-								nextBuffer[i + 7] = 0xFF; //42   =  35  + 7      8 -> pay 1   9 -> pay2    43 -< pay35
-							}
-						}
-					}
+					send_rs422 = 0;
+					receive_iouFlag = 1;
+					SCH_TIM_Start(SCH_TIM_IOU, IOU_PERIOD);
+					memset(&nextBuffer[8], 0xFF, 49);
+					//Timeout memset 0xff
 				}
 			}
 		}
 	}
 }
+
 
 
 

@@ -1,2 +1,2 @@
-../Core/GPS/gps.c:37:6:GPS_create_task	8	static
-../Core/GPS/gps.c:45:13:GPS_task_update	16	static
+../Core/GPS/gps.c:41:6:GPS_create_task	8	static
+../Core/GPS/gps.c:49:13:GPS_task_update	376	static

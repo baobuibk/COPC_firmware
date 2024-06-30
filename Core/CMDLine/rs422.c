@@ -21,6 +21,10 @@
 #include <stdlib.h>
 #include "../../ThirdParty/libfsp/crc.h"
 #include "../../BSP/RTC/ds3231.h"
+#include "cmd_CAM/cam_cmd.h"
+#include "../CMDLine/cmdline.h"
+#include "../CMDLine/command.h"
+
 
 #define RS422_PERIOD 1000
 
@@ -47,7 +51,8 @@ static RS422_TaskContextTypedef           RS422_task_context =
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
 		100,                                // taskPeriodInMS;
-		RS422_periodic_task					// taskFunction;
+		RS422_periodic_task,					// taskFunction;
+		87
 	}
 };
 
@@ -117,64 +122,215 @@ uint8_t currentSourceBuffer = 0;
 volatile uint8_t packet_count = 0x00;
 
 
+
+int Cmd_send_frame_status(int argc, char *argv[])
+{
+    if ((argc-1) < 1) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 1) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+
+    uint8_t statusBuffer[282];
+       statusBuffer[0] = 0x02;
+       statusBuffer[281] = 0x03;
+       statusBuffer[1] = 0xFF;
+
+       uint8_t day, date, month, year, hour, min, sec;
+       DS3231_GetDateTime(&day, &date, &month, &year, &hour, &min, &sec);
+
+       float temp;
+       uint8_t rounded_temp;
+
+       temp = DS3231_GetTemperature();
+       rounded_temp = (uint8_t)temp;
+
+       statusBuffer[2] = sec;
+       statusBuffer[3] = min;
+       statusBuffer[4] = hour;
+       statusBuffer[5] = date;
+       statusBuffer[6] = month;
+       statusBuffer[7] = rounded_temp;
+
+       for (int i = 135; i <= 160; i++) {
+           statusBuffer[i] = i - 135;
+       }
+
+       for (int i = 161; i <= 279; i++) {
+           statusBuffer[i] = i - 161;
+       }
+
+       uint16_t crc = crc16_CCITT(0xFFFF, &statusBuffer[1], 279);
+       statusBuffer[279] = (crc >> 8) & 0xFF;
+       statusBuffer[280] = crc & 0xFF;
+
+   	if (swap_byte_enable){
+   		for (int i = 1; i < ARRAY_SIZE - 1; i++) {
+   			if (statusBuffer[i] == 0x02) {
+   				statusBuffer[i] = 0xFE;
+   			} else if (statusBuffer[i] == 0x03) {
+   				statusBuffer[i] = 0xFD;
+   			}
+   		}
+   	}
+
+       // Gửi gói tin trạng thái
+       for (int i = 0; i < 282; i++) {
+           Uart_write(UART5, statusBuffer[i]);
+       }
+
+       Uart_sendstring(USARTx, "\nSending 1 Frame Status\n");
+       return (CMDLINE_OK);
+}
+
+int Cmd_send_frame_cam(int argc, char *argv[])
+{
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
+    USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+    // Kiểm tra packet_count từ dòng lệnh
+
+    uint8_t packet_count = atoi(argv[1]);
+
+    if (packet_count < 0 || packet_count >= 9) {
+        Uart_sendstring(USARTx, "\nInvalid packet_count (must be 0-8)\n");
+        return CMDLINE_INVALID_ARG;
+    }
+
+    // Chuẩn bị gói tin CAM
+    uint8_t camBuffer[282];
+    camBuffer[0] = 0x02;
+    camBuffer[281] = 0x03;
+    camBuffer[1] = packet_count;
+
+    uint16_t cam_start_index = packet_count * 277;
+    uint16_t cam_end_index = cam_start_index + 277;
+
+    if (cam_end_index <= sizeof(cam_data_img)) {
+        memcpy(&camBuffer[2], &cam_data_img[cam_start_index], 277);
+    } else {
+        int remaining_bytes = sizeof(cam_data_img) - cam_start_index;
+        memcpy(&camBuffer[2], &cam_data_img[cam_start_index], remaining_bytes);
+        memset(&camBuffer[2 + remaining_bytes], 0xFF, 277 - remaining_bytes);
+    }
+
+    uint16_t crc = crc16_CCITT(0xFFFF, &camBuffer[1], 279);
+    camBuffer[279] = (crc >> 8) & 0xFF;
+    camBuffer[280] = crc & 0xFF;
+
+    // Gửi gói tin CAM
+
+	if (swap_byte_enable){
+		for (int i = 1; i < ARRAY_SIZE - 1; i++) {
+			if (camBuffer[i] == 0x02) {
+				camBuffer[i] = 0xFE;
+			} else if (camBuffer[i] == 0x03) {
+				camBuffer[i] = 0xFD;
+			}
+		}
+	}
+
+    for (int i = 0; i < 282; i++) {
+        Uart_write(UART5, camBuffer[i]);
+    }
+
+    Uart_sendstring(USARTx, "\nSent 1 Frame CAM\n");
+
+    return (CMDLINE_OK);
+}
+
+
+
+
 void RS422_periodic_task(void) {
 	if (rs422_report_enable) {
 
         packet_count = 0;
-        uint32_t packets_per_second = 0;
+   //     uint32_t packets_per_second = 0;
 
-        switch (RS422_task_context.taskProperty.taskPeriodInMS) {
-            case 2000:
-                packets_per_second = 1;
-                break;
-            case 1000:
-                packets_per_second = 1;
-                break;
-            case 500:
-                packets_per_second = 2;
-                break;
-            case 333:
-                packets_per_second = 3;
-                break;
-            case 250:
-                packets_per_second = 4;
-                break;
-            case 200:
-                packets_per_second = 5;
-                break;
-            case 167:
-                packets_per_second = 6;
-                break;
-            case 143:
-                packets_per_second = 7;
-                break;
-            case 125:
-                packets_per_second = 8;
-                break;
-            case 111:
-                packets_per_second = 9;
-                break;
-            case 100:
-                packets_per_second = 10;
-                break;
-            case 91:
-                packets_per_second = 11;
-                break;
-            case 83:
-                packets_per_second = 12;
-                break;
-            default:
-                packets_per_second = 1;
-                break;
-        }
+//        switch (RS422_task_context.taskProperty.taskPeriodInMS) {
+//            case 2000:
+//                packets_per_second = 1;
+//                break;
+//            case 1000:
+//                packets_per_second = 1;
+//                break;
+//            case 500:
+//                packets_per_second = 2;
+//                break;
+//            case 333:
+//                packets_per_second = 3;
+//                break;
+//            case 250:
+//                packets_per_second = 4;
+//                break;
+//            case 200:
+//                packets_per_second = 5;
+//                break;
+//            case 167:
+//                packets_per_second = 6;
+//                break;
+//            case 143:
+//                packets_per_second = 7;
+//                break;
+//            case 125:
+//                packets_per_second = 8;
+//                break;
+//            case 111:
+//                packets_per_second = 9;
+//                break;
+//            case 100:
+//                packets_per_second = 10;
+//                break;
+//            case 91:
+//                packets_per_second = 11;
+//                break;
+//            case 83:
+//                packets_per_second = 12;
+//                break;
+//            default:
+//                packets_per_second = 1;
+//                break;
+//        }
 
 
-		if (packet_count == 0)
+
+
+		if (packet_count < 9)
 		{
 
 			nextBuffer[0] = 0x02;
-			nextBuffer[ARRAY_SIZE - 1] = 0x03;
+			nextBuffer[281] = 0x03;
+			nextBuffer[1] = packet_count;
 
+		    uint16_t cam_start_index = packet_count * 277;
+		    uint16_t cam_end_index = cam_start_index + 277;
+
+		    if (cam_end_index <= 7296) {
+		        memcpy(&nextBuffer[2], &cam_data_img[cam_start_index], 277);
+		    } else {
+		        // Xử lý trường hợp gói tin cuối cùng (vị trí 26)
+		        int remaining_bytes = 7296 - cam_start_index;
+		        memcpy(&nextBuffer[2], &cam_data_img[cam_start_index], remaining_bytes);
+		        memset(&nextBuffer[2 + remaining_bytes], 0xFF, 277 - remaining_bytes);
+		    }
+
+
+		    uint16_t crc = crc16_CCITT(0xFFFF, &nextBuffer[1], 279);
+		    nextBuffer[279] = (crc >> 8) & 0xFF;
+		    nextBuffer[280] = crc & 0xFF;
+		} else {
+
+//			if (new_data_available) {
+//			    uint8_t *temp = cam_prep_buffer;
+//			    cam_prep_buffer = cam_send_buffer;
+//			    cam_send_buffer = temp;
+//
+//			    new_data_available = 0;
+//			}
+
+
+			nextBuffer[0] = 0x02;
+			nextBuffer[281] = 0x03;
+			nextBuffer[1] = 0xFF;
 		    uint8_t day, date, month, year, hour, min, sec;
 		    DS3231_GetDateTime(&day, &date, &month, &year, &hour, &min, &sec);
 
@@ -190,8 +346,6 @@ void RS422_periodic_task(void) {
 		    nextBuffer[5] = date;
 		    nextBuffer[6] = month;
 		    nextBuffer[7] = rounded_temp;
-
-
 
 
 			for (int i = 135; i <= 160; i++) {
@@ -210,14 +364,15 @@ void RS422_periodic_task(void) {
 			nextBuffer[ARRAY_SIZE - 2] = crc & 0xFF;         // CRC#LOW
 
             // Switch buffers
-            uint8_t* tempz = currentBuffer;
-            currentBuffer = nextBuffer;
-            nextBuffer = tempz;
+
 
 
 		}
 
-		currentBuffer[1] = packet_count;
+        uint8_t* tempz = currentBuffer;
+        currentBuffer = nextBuffer;
+        nextBuffer = tempz;
+
 
 		if (swap_byte_enable){
 			for (int i = 1; i < ARRAY_SIZE - 1; i++) {
@@ -243,9 +398,10 @@ void RS422_periodic_task(void) {
 
         packet_count++;
 
-        if (packet_count >= packets_per_second) {
+        if (packet_count >= 10) {
             packet_count = 0;
         }
+
 
 	}
 }

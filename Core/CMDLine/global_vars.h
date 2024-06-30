@@ -16,7 +16,7 @@ extern volatile uint8_t uart_choose_usart2;
 extern volatile uint8_t rs422_report_enable;
 extern volatile uint8_t gps_report_enable;
 extern volatile uint8_t rf_report_enable;
-
+extern volatile uint8_t format_gps;
 
 extern volatile uint8_t receive_iouFlag;
 extern volatile uint8_t receive_pduFlag;

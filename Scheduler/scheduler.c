@@ -21,10 +21,6 @@ typedef struct SCH_TaskContextTypedef
   const SCH_TaskPropertyTypedef*        pTaskProperty;
 } SCH_TaskContextTypedef;
 
-
-
-
-
 typedef struct SCH_TimerContextTypedef
 {
   SCH_TimerStateTypedef                 timerState;
@@ -183,7 +179,7 @@ t_Status SCH_TASK_CreateTask(SCH_TASK_HANDLE* pHandle, SCH_TaskPropertyTypedef* 
       pTaskContext->pTaskProperty = pTaskProperty;
       // Make sure we are initializing other members of task context
       pTaskContext->taskFlag = FALSE;
-      pTaskContext->taskTick = RESET;
+      pTaskContext->taskTick = pTaskProperty->taskTick;;
       // Put task in Ready State
       pTaskContext->taskState = TASK_StateReady;
 

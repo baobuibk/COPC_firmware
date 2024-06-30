@@ -14,7 +14,7 @@
 #include "cmd_IOU/iou_cmd.h"
 #include "cmd_PDU/pdu_cmd.h"
 #include "cmd_PMU/pmu_cmd.h"
-#include "cmd_CAM/cam_cmd.h"
+//#include "cmd_CAM/cam_cmd.h"
 #include "../../BSP/RTC/ds3231.h"
 #include <stdio.h>
 #include "main.h"
@@ -56,9 +56,12 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"set_byte_rs422", Cmd_set_byte_rs422, ": Set Size of packet RS422, Default 282 (150<x<1000) | format: set_byte_rs422 <size>"},
 								{"set_baud_rs422", Cmd_set_baudrate_rs422, ": [9600|19200|38400|115200|230400|460800], Default 115200 | format: set_baud_rs422 <baudrate>"},
 								{"set_fre_rs422", Cmd_set_fre_rs422, ": [0(0.5)|1|2|3|4|5|6|7|8|9|10|11|12], Packet per second| format: set_fre_rs422 <packet>"},
-
 								{"swap_byte_ena", Cmd_swap_byte_ena, ": Enable swap byte RS422, 0x02->0xFE, 0x03->0xFD | format: swap_byte_ena"},
 								{"swap_byte_dis", Cmd_swap_byte_dis, ": Disable swap byte RS422 | format: swap_byte_dis"},
+
+								{"send_frame_status", Cmd_send_frame_status, ": Send Frame Status| format: send_frame_status"},
+								{"send_frame_cam", Cmd_send_frame_cam, ": Send Frame CAM with packet_count [0-8]| format: send_frame_cam <packet_count>"},
+
 								{"memory_usage", Cmd_memory_usage, ": %RAM and %FLASH Used | format: memory_usage"},
 //CPOC
 								{"time_get", Cmd_time_get , ": Get RTC Time | format: time_get"},
@@ -77,6 +80,7 @@ tCmdLineEntry g_psCmdTable[] = {
 								{"gps_get", NotYetDefine, ": Get GPS Data | format: gps_get"}	,
 								{"gps_set", NotYetDefine, ": Setting GPS Hardware | format: ********"}	,
 								{"start_positioining", Cmd_start_positioining, ": Continuously send  GPS Data to LORA | format: start_positioining"}	,
+								{"gps_format", Cmd_format_gps, ": Format GPS Data | format: gps_format <1-On/0-Off>"}	,
 //PMU
 								{"pmu_get_temp", Cmd_pmu_get_temp, ": Response 4 NTC channel in Celsius | format: pmu_temp"}	,
 								{"pmu_bat_vol", Cmd_pmu_bat_vol, ": Response 4 BAT channel in Voltage | format: pmu_bat_vol"}	,
@@ -169,7 +173,8 @@ static Command_TaskContextTypedef           s_CommandTaskContext =
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
 		10,                                // taskPeriodInMS;
-		command_task_update                // taskFunction;
+		command_task_update,                // taskFunction;
+		9
 	}
 };
 
@@ -229,6 +234,9 @@ void	command_init(void)
 //	Uart_sendstring(UART5, "\r\n> ");
     Uart_sendstring(UART4, "\r\n> ");
     Uart_sendstring(USART2, "\r\n> ");
+
+    Uart_flush(USART2);
+    Uart_flush(UART4);
 }
 
 volatile uint8_t auto_report_enabled = 0;
@@ -765,7 +773,7 @@ int Cmd_rf_report_ena(int argc, char *argv[])
 }
 
 
-volatile uint8_t swap_byte_enable = 1;
+volatile uint8_t swap_byte_enable = 0;
 
 int Cmd_swap_byte_ena(int argc, char *argv[])
 {
@@ -796,6 +804,10 @@ int Cmd_swap_byte_dis(int argc, char *argv[])
     Uart_sendstring(USARTx, "\nDISABLE!!!\n");
     return CMDLINE_OK;
 }
+
+
+
+
 
 
 
@@ -908,6 +920,34 @@ int Cmd_start_positioining (int argc, char *argv[]){
 	// Return success.
 	return (CMDLINE_OK);
 }
+
+volatile uint8_t format_gps = 0;
+int Cmd_format_gps (int argc, char *argv[]){
+
+    if ((argc-1) < 2) return CMDLINE_TOO_FEW_ARGS;
+    if ((argc-1) > 2) return CMDLINE_TOO_MANY_ARGS;
+
+
+	USART_TypeDef* USARTx = (USART_TypeDef*)argv[argc-1];
+
+    uint8_t format = atoi(argv[1]);
+    if (format > 1)   return CMDLINE_INVALID_ARG;
+
+    if(format){
+    	format_gps = 1;
+    	Uart_flush(USART3);
+    	Uart_sendstring(USARTx, "\nGPS Formated\r\n");
+    }else{
+    	format_gps = 0;
+    	Uart_flush(USART3);
+    	Uart_sendstring(USARTx, "\nStop Formating\r\n");
+    }
+
+
+	// Return success.
+	return (CMDLINE_OK);
+}
+
 
 
 void	command_create_task(void)

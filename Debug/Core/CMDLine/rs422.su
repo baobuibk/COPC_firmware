@@ -1,7 +1,9 @@
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:881:22:LL_GPIO_SetOutputPin	16	static
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:910:22:LL_GPIO_ResetOutputPin	16	static
-../Core/CMDLine/rs422.c:55:6:rs422_set_task_period	16	static
-../Core/CMDLine/rs422.c:65:6:switch_board	16	static
-../Core/CMDLine/rs422.c:120:6:RS422_periodic_task	80	static
-../Core/CMDLine/rs422.c:253:6:frame_processing_rs422	1776	static
-../Core/CMDLine/rs422.c:522:6:rs422_create_task	8	static
+../Core/CMDLine/rs422.c:60:6:rs422_set_task_period	16	static
+../Core/CMDLine/rs422.c:70:6:switch_board	16	static
+../Core/CMDLine/rs422.c:126:5:Cmd_send_frame_status	368	static
+../Core/CMDLine/rs422.c:184:5:Cmd_send_frame_cam	328	static
+../Core/CMDLine/rs422.c:243:6:RS422_periodic_task	88	static
+../Core/CMDLine/rs422.c:409:6:frame_processing_rs422	1776	static
+../Core/CMDLine/rs422.c:678:6:rs422_create_task	8	static

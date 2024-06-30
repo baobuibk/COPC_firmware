@@ -17,6 +17,8 @@
 #include "../ACK_packet/ACKsend_packet.h"
 #include "../global_vars.h"
 #include "../rs422.h"
+#include <string.h>
+
 #define PDU_PERIOD 1000
 
 static void PDU_update_task(void);
@@ -36,7 +38,8 @@ static PDU_TaskContextTypedef           PDU_task_context =
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
 		100,                                // taskPeriodInMS;
-		PDU_update_task					// taskFunction;
+		PDU_update_task,					// taskFunction;
+		91							//taskTick
 	}
 };
 
@@ -78,20 +81,13 @@ void PDU_update_task(void) {
 						SCH_TIM_Start(SCH_TIM_PDU, PDU_PERIOD);
 					}
 				}
+			}else{
 				if(!receive_pduFlag){
-					timeout_counter_pdu++;
-					if (timeout_counter_pdu > 2){
-						disconnect_counter_pdu++;
-						timeout_counter_pdu = 0;
-						receive_pduFlag = 1;
-						send_rs422 = 0;
-						if(disconnect_counter_pdu > 4){
-							disconnect_counter_pdu = 5;
-							for (int i = 1; i <= 54; i++) {
-									nextBuffer[i + 42] = 0xFF; //43   pay1    + 44  pay2        96-<54
-								}
-						}
-					}
+					send_rs422 = 0;
+					receive_pduFlag = 1;
+					SCH_TIM_Start(SCH_TIM_PDU, PDU_PERIOD);
+					memset(&nextBuffer[57], 0xFF, 54);
+					//Timeout memset 0xff
 				}
 			}
 		}

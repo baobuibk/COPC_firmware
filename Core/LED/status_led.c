@@ -30,6 +30,7 @@ typedef struct Led_TaskContextTypedef
 {
 	SCH_TASK_HANDLE               taskHandle;
 	SCH_TaskPropertyTypedef       taskProperty;
+	uint32_t                      taskTick;
 } Led_TaskContextTypedef;
 
 typedef	struct StatusLed_CurrentStateTypedef
@@ -48,8 +49,9 @@ static Led_TaskContextTypedef           s_task_context =
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
 		500,                                // taskPeriodInMS;
-		status_led_update                // taskFunction;
-	}
+		status_led_update,                // taskFunction;
+		483							//taskTick
+	},
 };
 
 static void status_led_on(void);
@@ -85,6 +87,8 @@ static void status_led_on(void)
 
 void	status_led_update(void)
 {
+//	Uart_sendstring(UART4, "LED Update");
+
 	switch (s_led_display_status.state) {
 	case POWERUP:
 		status_led_powerup();
@@ -110,10 +114,10 @@ static void status_led_powerup(void)
         {
             s_led_display_status.led = 0;
             if(!rs422_report_enable){
-            	char buffer_0x00[20];
+       //     	char buffer_0x00[20];
 
-				sprintf(buffer_0x00, "\nAlive[%d]\n", count);
-				Uart_sendstring(UART5, buffer_0x00);
+	//			sprintf(buffer_0x00, "\nAlive[%d]\n", count);
+	//			Uart_sendstring(UART5, buffer_0x00);
 				count++;
 				if(count>4){
 					count =0;
@@ -124,7 +128,7 @@ static void status_led_powerup(void)
             if(count_ena>3 || rs422_report_enable){
             	count_ena = 0;
             	if((!(rs422_report_enable)) && xflag){
-            		rs422_report_enable = 1;
+            	//	rs422_report_enable = 1;
             	}
             	xflag = 0;
             }

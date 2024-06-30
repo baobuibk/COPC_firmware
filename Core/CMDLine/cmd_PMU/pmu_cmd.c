@@ -16,6 +16,7 @@
 #include "../ACK_packet/ACKsend_packet.h"
 #include "../global_vars.h"
 #include "../rs422.h"
+#include <string.h>
 #define PMU_PERIOD 1000
 uint8_t pmu_frame[] = {0xCA, 0x01, 0x02, 0x01, 0x04, 0x08, 0x3D, 0xC5, 0xEF};
 static void PMU_update_task(void);
@@ -35,7 +36,8 @@ static PMU_TaskContextTypedef           PMU_task_context =
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
 		100,                                // taskPeriodInMS;
-		PMU_update_task					// taskFunction;
+		PMU_update_task,					// taskFunction;
+		89							//taskTick
 	}
 };
 
@@ -79,26 +81,18 @@ void PMU_update_task(void) {
 						SCH_TIM_Start(SCH_TIM_PMU, PMU_PERIOD);
 					}
 				}
+			}else{
 				if(!receive_pmuFlag){
-					timeout_counter_pmu++;
-					if (timeout_counter_pmu > 2){
-						disconnect_counter_pmu++;
-						timeout_counter_pmu = 0;
-						receive_pmuFlag = 1;
-						send_rs422 = 0;
-						if(disconnect_counter_pmu> 4){
-							for (int i = 1; i <= 24; i++) {
-								disconnect_counter_pmu = 5;
-								nextBuffer[i + 96] = 0xFF; //97   pay1    + 98 pay2    120    pay24
-							}
-						}
-					}
+					send_rs422 = 0;
+					receive_pmuFlag = 1;
+					SCH_TIM_Start(SCH_TIM_PMU, PMU_PERIOD);
+					memset(&nextBuffer[111], 0xFF, 24);
+					//Timeout memset 0xff
 				}
 			}
 		}
 	}
 }
-
 
 
 

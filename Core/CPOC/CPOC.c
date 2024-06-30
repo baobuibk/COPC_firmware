@@ -51,7 +51,8 @@ static COPC_TaskContextTypedef           s_COPC_task_context =
 		SCH_TASK_PRIO_0,                    // taskPriority;
 		10,                                // taskPeriodInMS, call the task to check buffer every 10ms
 										//with baudrate of 9600, buffer size can be less than 10 bytes
-		COPC_task_update                // taskFunction;
+		COPC_task_update,                // taskFunction;
+		8
 	}
 };
 
@@ -67,6 +68,21 @@ volatile uint8_t receiving = 0;
 volatile uint8_t receive_buffer[FSP_PKT_MAX_LENGTH];
 volatile uint8_t receive_index = 0;
 
+volatile uint16_t packet_cam_count = 0;
+
+
+
+
+
+uint8_t cam_buffer1[7296];
+uint8_t cam_buffer2[7296];
+uint8_t cam_buffer3[7296];
+uint8_t *cam_write_buffer = cam_buffer1;
+uint8_t *cam_prep_buffer = cam_buffer2;
+uint8_t *cam_send_buffer = cam_buffer3;
+uint8_t new_data_available = 0;
+
+
 static void COPC_task_update(void)
 {
 	uint8_t rxData;
@@ -80,48 +96,65 @@ static void COPC_task_update(void)
 //		sprintf(pos_str2, "%d", rxData);
 //		Uart_sendstring(UART5, pos_str2);
 
-        if (!receiving) {
-            if (rxData == FSP_PKT_SOD) {
-                receiving = 1;
-                receive_index = 0;
-            }
-        } else {
+//        if(send_by_cam){
+//        	cam_buffer[packet_cam_count] = rxData;
+//        	packet_cam_count++;
+//        	if(packet_cam_count>=7296){
+//        		new_data_available = 1;
+//
+//        		uint8_t *temp = cam_write_buffer;
+//        		cam_write_buffer = cam_prep_buffer;
+//        		cam_prep_buffer = temp;
+//        		//tro va luu vao buffer
+//                packet_cam_count = 0;
+//        		send_by_cam = 0;
+//        		send_rs42 = 0;
+//        		receive_camFlag= 1;
+//        	}
+//        }else{
+            if (!receiving) {
+                if (rxData == FSP_PKT_SOD) {
+                    receiving = 1;
+                    receive_index = 0;
+                }
+            } else {
 
-            if (rxData == FSP_PKT_EOF) {
-                receiving = 0;
-                fsp_packet_t fsp_pkt;
-                if(send_rs422){
-					frame_decode_rs422((uint8_t *)receive_buffer, receive_index, &fsp_pkt);
-					frame_processing_rs422(&fsp_pkt);
-					receive_pduFlag = 1;
-					receive_pmuFlag = 1;
-					receive_iouFlag = 1;
-					send_rs422 = 0;
-                }else{
-                    int ret = frame_decode((uint8_t *)receive_buffer, receive_index, &fsp_pkt);
+                if (rxData == FSP_PKT_EOF) {
+                    receiving = 0;
+                    fsp_packet_t fsp_pkt;
+                    if(send_rs422){
 
-                    if (ret > 0) {
-                        char error_msg[50];
-                        sprintf(error_msg, "Error: %s\r\n", decode_error_msgs[ret]);
-//                        Uart_sendstring(UART5, error_msg);
-                        Uart_sendstring(UART4, error_msg);
-                        Uart_sendstring(USART2, error_msg);
+    					frame_decode_rs422((uint8_t *)receive_buffer, receive_index, &fsp_pkt);
+    					frame_processing_rs422(&fsp_pkt);
+    					send_rs422 = 0;
+
+                    }else{
+                        int ret = frame_decode((uint8_t *)receive_buffer, receive_index, &fsp_pkt);
+
+                        if (ret > 0) {
+                            char error_msg[50];
+                            sprintf(error_msg, "Error: %s\r\n", decode_error_msgs[ret]);
+    //                        Uart_sendstring(UART5, error_msg);
+                            Uart_sendstring(UART4, error_msg);
+                            Uart_sendstring(USART2, error_msg);
+                        }
                     }
+
+
+
+                }else{
+                	receive_buffer[receive_index++] = rxData;
                 }
 
+                if (receive_index >= FSP_PKT_MAX_LENGTH) {
+                    // Frame quá dài, reset lại
 
-
-            }else{
-            	receive_buffer[receive_index++] = rxData;
+                    receiving = 0;
+                }
             }
+        //}
 
-            if (receive_index >= FSP_PKT_MAX_LENGTH) {
-                // Frame quá dài, reset lại
-
-                receiving = 0;
-            }
     }
-}
 
 }
 void	COPC_create_task(void)
